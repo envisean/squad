@@ -1,84 +1,263 @@
-# Turborepo starter
+# Squad - AI Agent Management Platform
 
-This is an official starter Turborepo.
+Squad is a platform for creating, managing, and evaluating AI agents with human-in-the-loop capabilities. It provides tools for agent orchestration, task management, and performance analytics.
 
-## Using this example
-
-Run the following command:
-
-```sh
-npx create-turbo@latest
-```
-
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
+## Repository Structure
 
 ```
-cd my-turborepo
-pnpm build
+squad/
+├── apps/
+│   ├── web/              # React frontend application
+│   └── docs/             # Documentation site (future)
+│
+├── packages/
+│   ├── core/             # Core types and evaluation framework
+│   │   ├── src/
+│   │   │   ├── evaluation/  # Evaluation framework
+│   │   │   └── types/      # Shared type definitions
+│   │   └── tests/
+│   │
+│   ├── agents/           # Agent implementations
+│   │   ├── src/
+│   │   │   ├── base-agent.ts
+│   │   │   └── task-agent/
+│   │   └── tests/
+│   │
+│   └── integrations/     # External integrations
+│       ├── src/
+│       │   └── supabase/   # Supabase client & repositories
+│       └── tests/
+│
+├── supabase/
+│   ├── functions/        # Edge Functions
+│   ├── migrations/       # Database migrations
+│   └── seed/            # Initial data
+│
+└── .ai/                  # AI development context
+    ├── context/          # Project documentation
+    └── sessions/         # Development session logs
 ```
 
-### Develop
+## Architecture Overview
 
-To develop all apps and packages, run the following command:
+### Infrastructure (Supabase)
 
-```
-cd my-turborepo
-pnpm dev
-```
+Squad leverages Supabase as its primary infrastructure platform, providing:
 
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-npx turbo link
+1. **Vector Operations & AI Features**
+```typescript
+interface SupabaseAICapabilities {
+  vectorStore: {
+    storage: pgvector;        // Built-in pgvector support
+    indexes: {
+      ivfflat: IVFIndex;     // For larger datasets
+      hnsw: HNSWIndex;       // For faster retrieval
+    };
+  };
+  integrations: {
+    langchain: LangChainVectorStore;
+    llamaindex: LlamaIndexVectorStore;
+    openai: OpenAIIntegration;
+    huggingface: HuggingFaceIntegration;
+  };
+}
 ```
 
-## Useful Links
+2. **Runtime & Compute**
+```typescript
+interface SupabaseCompute {
+  edgeFunctions: {
+    runtimes: {
+      deno: DenoRuntime;     // For Edge Functions
+      python: PythonRuntime;  // Via Python Client
+    };
+    features: {
+      websockets: boolean;    // Real-time capabilities
+      backgroundTasks: boolean;
+      streaming: boolean;
+    };
+  };
+}
+```
 
-Learn more about the power of Turborepo:
+3. **Storage & Database**
+```typescript
+interface SupabaseStorage {
+  database: {
+    postgres: PostgreSQL;
+    realtime: RealtimeSubscriptions;
+    rls: RowLevelSecurity;
+  };
+  storage: {
+    buckets: StorageBucket[];
+    cdn: CDNIntegration;
+  };
+}
+```
 
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
+### Core Architecture
+
+The platform is built around these key components:
+
+1. **Agent Framework**
+```typescript
+interface AgentDefinition {
+  type: string;
+  capabilities: AgentCapability[];
+  tools: Tool[];
+  knowledgeBase?: {
+    documents?: Document[];
+    embeddings?: Embedding[];
+    vectorStore?: VectorStore;
+  };
+  prompts: {
+    system?: string;
+    task?: string;
+    error?: string;
+  };
+  constraints: {
+    maxTokens?: number;
+    temperature?: number;
+    costLimit?: number;
+    timeLimit?: number;
+  };
+}
+```
+
+2. **Task Management**
+```typescript
+interface TaskDefinition {
+  type: string;
+  requirements: {
+    capabilities: string[];
+    tools: string[];
+    priority?: 'low' | 'medium' | 'high';
+    deadline?: Date;
+  };
+  workflow?: {
+    steps?: TaskStep[];
+    fallback?: TaskStep[];
+    validation?: ValidationRule[];
+  };
+}
+```
+
+3. **Evaluation Framework**
+```typescript
+interface EvaluationCriteria {
+  accuracy: number;
+  relevance: number;
+  businessValue: {
+    costEfficiency: number;
+    timeEfficiency: number;
+    qualityScore: number;
+  };
+  domainAccuracy: {
+    technicalPrecision: number;
+    industryCompliance: number;
+  };
+}
+```
+
+## Database Schema
+
+Our database is designed to support vector operations and efficient agent management:
+
+```sql
+-- Agent configuration and state
+CREATE TABLE agents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    model TEXT NOT NULL,
+    parameters JSONB NOT NULL DEFAULT '{}',
+    metadata JSONB
+);
+
+-- Vector storage for agent knowledge
+CREATE TABLE agent_embeddings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    agent_id UUID NOT NULL REFERENCES agents(id),
+    content TEXT NOT NULL,
+    embedding vector(1536),
+    metadata JSONB
+);
+
+-- Task management
+CREATE TABLE tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    status TEXT NOT NULL,
+    priority TEXT NOT NULL,
+    agent_id UUID REFERENCES agents(id),
+    metadata JSONB
+);
+```
+
+## Development
+
+### Prerequisites
+- Node.js >= 18
+- pnpm
+- Supabase CLI
+
+### Setup
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/squad.git
+   cd squad
+   ```
+
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+
+3. Start Supabase locally:
+   ```bash
+   supabase start
+   ```
+
+4. Start the development server:
+   ```bash
+   pnpm dev
+   ```
+
+### Running Tests
+```bash
+pnpm test
+```
+
+## Key Features
+
+1. **Agent Management**
+   - Create and configure AI agents
+   - Monitor agent status and performance
+   - Scale agent instances dynamically
+
+2. **Task Orchestration**
+   - Define complex workflows
+   - Automatic task routing
+   - Priority-based scheduling
+
+3. **Evaluation Framework**
+   - LangChain integration for evaluation
+   - Business metrics tracking
+   - Quality assurance
+
+4. **Vector Operations**
+   - Efficient similarity search
+   - Knowledge base management
+   - Embedding storage and retrieval
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## License
+
+[MIT License](LICENSE)
