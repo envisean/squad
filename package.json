@@ -5,12 +5,21 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "test": "turbo test",
+    "clean": "turbo clean && rm -rf node_modules"
   },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "devDependencies": {
+    "@types/node": "^20.11.5",
     "prettier": "^3.2.5",
     "turbo": "^2.3.3",
-    "typescript": "5.5.4"
+    "typescript": "^5.3.3"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
