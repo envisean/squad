@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { QueueManager } from './queue-manager';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import type {
   AgentRegistration,
@@ -20,6 +21,7 @@ export class ControlPlane {
   private config: ControlPlaneConfig;
   private commandChannel?: RealtimeChannel;
   private heartbeatInterval?: NodeJS.Timer;
+  private queueManager: QueueManager;
 
   constructor(config: ControlPlaneConfig) {
     this.config = {
@@ -29,6 +31,11 @@ export class ControlPlane {
     };
 
     this.supabase = createClient(
+      config.supabaseUrl,
+      config.supabaseKey
+    );
+
+    this.queueManager = new QueueManager(
       config.supabaseUrl,
       config.supabaseKey
     );
@@ -213,6 +220,51 @@ export class ControlPlane {
   }
 
   // Cleanup
+  // Queue Management
+  async enqueueTask(task: TaskQueueEntry): Promise<string> {
+    return this.queueManager.enqueueTask(task);
+  }
+
+  async enqueueWorkflow(workflow: OrchestratorQueueEntry): Promise<string> {
+    return this.queueManager.enqueueWorkflow(workflow);
+  }
+
+  async getNextTask(agentId: string, taskTypes: string[]): Promise<TaskQueueEntry | null> {
+    return this.queueManager.claimNextTask(agentId, taskTypes);
+  }
+
+  async getNextWorkflow(orchestratorId: string, workflowTypes: string[]): Promise<OrchestratorQueueEntry | null> {
+    return this.queueManager.claimNextWorkflow(orchestratorId, workflowTypes);
+  }
+
+  async completeTask(taskId: string, result?: Record<string, unknown>): Promise<void> {
+    await this.queueManager.completeTask(taskId, result);
+  }
+
+  async completeWorkflow(workflowId: string, result?: Record<string, unknown>): Promise<void> {
+    await this.queueManager.completeWorkflow(workflowId, result);
+  }
+
+  async failTask(taskId: string, error: Error): Promise<void> {
+    await this.queueManager.failTask(taskId, error);
+  }
+
+  async failWorkflow(workflowId: string, error: Error): Promise<void> {
+    await this.queueManager.failWorkflow(workflowId, error);
+  }
+
+  async getQueueMetrics(agentId: string): Promise<QueueMetrics> {
+    return this.queueManager.getQueueMetrics(agentId);
+  }
+
+  subscribeToTaskUpdates(agentId: string, onUpdate: (task: TaskQueueEntry) => void) {
+    return this.queueManager.subscribeToTaskUpdates(agentId, onUpdate);
+  }
+
+  subscribeToWorkflowUpdates(orchestratorId: string, onUpdate: (workflow: OrchestratorQueueEntry) => void) {
+    return this.queueManager.subscribeToWorkflowUpdates(orchestratorId, onUpdate);
+  }
+
   async cleanup(): Promise<void> {
     this.stopHeartbeat();
     if (this.commandChannel) {

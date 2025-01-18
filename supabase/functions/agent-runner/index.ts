@@ -63,6 +63,76 @@ serve(async (req) => {
       await controlPlane.updateCommandStatus(command.id, 'completed');
     });
 
+    // Start processing tasks
+    let currentStatus = 'idle';
+
+    const processNextTask = async () => {
+      if (currentStatus !== 'running') return;
+
+      try {
+        // Get next task
+        const task = await controlPlane.getNextTask(
+          agentId,
+          agentConfig.capabilities
+        );
+
+        if (task) {
+          console.log('Processing task:', task.id);
+
+          try {
+            // Process task
+            const result = await processTask(task);
+            
+            // Mark task as completed
+            await controlPlane.completeTask(task.id, result);
+          } catch (error) {
+            console.error('Task processing failed:', error);
+            await controlPlane.failTask(task.id, error);
+          }
+        }
+      } catch (error) {
+        console.error('Error processing task:', error);
+      }
+
+      // Schedule next task processing
+      setTimeout(processNextTask, 1000);
+    };
+
+    // Subscribe to commands
+    await controlPlane.subscribeToCommands(agentId, async (command) => {
+      switch (command.command) {
+        case 'start':
+          currentStatus = 'running';
+          await controlPlane.updateStatus(agentId, 'running');
+          processNextTask(); // Start processing tasks
+          break;
+        case 'stop':
+          currentStatus = 'idle';
+          await controlPlane.updateStatus(agentId, 'idle');
+          break;
+        case 'pause':
+          currentStatus = 'idle';
+          await controlPlane.updateStatus(agentId, 'idle');
+          break;
+        case 'resume':
+          currentStatus = 'running';
+          await controlPlane.updateStatus(agentId, 'running');
+          processNextTask(); // Resume processing tasks
+          break;
+        case 'update':
+          // Handle agent update
+          break;
+      }
+
+      // Mark command as completed
+      await controlPlane.updateCommandStatus(command.id, 'completed');
+    });
+
+    // Subscribe to task updates
+    controlPlane.subscribeToTaskUpdates(agentId, (task) => {
+      console.log('Task update:', task);
+    });
+
     // Keep the function running
     while (true) {
       await new Promise(resolve => setTimeout(resolve, 1000));
