@@ -3,6 +3,8 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
 import { table } from 'table';
+import { EnhancedMemoryManager } from '@squad/core';
+import { config } from '../config';
 
 export function memoryCommands(program: Command) {
   const memory = program.command('memory');
@@ -19,26 +21,40 @@ export function memoryCommands(program: Command) {
     .action(async (options) => {
       const spinner = ora('Querying memories...').start();
       try {
-        // TODO: Implement memory query
-        const memories = [
-          {
-            id: '1',
-            type: 'conversation',
-            content: 'Example memory',
-            timestamp: new Date()
+        const memoryManager = new EnhancedMemoryManager({
+          storage: {
+            type: 'supabase',
+            config: {
+              url: config.get('supabaseUrl'),
+              key: config.get('supabaseKey')
+            }
+          },
+          vectorStore: {
+            dimensions: 1536,
+            similarity: 'cosine'
           }
-        ];
+        });
+
+        const memories = await memoryManager.queryMemories({
+          type: options.type,
+          agentId: options.agent,
+          startTime: options.since ? new Date(options.since) : undefined,
+          endTime: options.until ? new Date(options.until) : undefined,
+          limit: parseInt(options.limit)
+        });
+
         spinner.stop();
 
         const data = memories.map(m => [
-          m.id,
-          m.type,
-          m.content,
-          m.timestamp.toISOString()
+          m.entry.id,
+          m.entry.type,
+          m.entry.content.substring(0, 100) + '...',
+          new Date(m.entry.timestamp).toLocaleString(),
+          m.score.toFixed(2)
         ]);
 
         console.log(table([
-          ['ID', 'Type', 'Content', 'Timestamp'],
+          ['ID', 'Type', 'Content', 'Timestamp', 'Relevance'],
           ...data
         ]));
       } catch (error) {
@@ -55,17 +71,30 @@ export function memoryCommands(program: Command) {
     .action(async (id) => {
       const spinner = ora('Fetching memory...').start();
       try {
-        // TODO: Implement memory fetch
-        const memory = {
-          id,
-          type: 'conversation',
-          content: 'Example memory content',
-          metadata: {
-            source: 'user',
-            context: { task: 'example' }
+        const memoryManager = new EnhancedMemoryManager({
+          storage: {
+            type: 'supabase',
+            config: {
+              url: config.get('supabaseUrl'),
+              key: config.get('supabaseKey')
+            }
           },
-          timestamp: new Date()
-        };
+          vectorStore: {
+            dimensions: 1536,
+            similarity: 'cosine'
+          }
+        });
+
+        const memories = await memoryManager.queryMemories({
+          content: id,
+          limit: 1
+        });
+
+        if (memories.length === 0) {
+          throw new Error('Memory not found');
+        }
+
+        const memory = memories[0].entry;
         spinner.stop();
 
         console.log(chalk.bold('\nMemory Details:'));
@@ -99,8 +128,23 @@ export function memoryCommands(program: Command) {
         }
 
         const spinner = ora('Deleting memories...').start();
-        // TODO: Implement memory deletion
-        await new Promise(r => setTimeout(r, 1000));
+        
+        const memoryManager = new EnhancedMemoryManager({
+          storage: {
+            type: 'supabase',
+            config: {
+              url: config.get('supabaseUrl'),
+              key: config.get('supabaseKey')
+            }
+          },
+          vectorStore: {
+            dimensions: 1536,
+            similarity: 'cosine'
+          }
+        });
+
+        await memoryManager.cleanup();
+        
         spinner.succeed('Memories deleted successfully');
       } catch (error) {
         console.error(chalk.red('Failed to delete memories:'), error);
@@ -118,9 +162,42 @@ export function memoryCommands(program: Command) {
     .action(async (options) => {
       const spinner = ora('Exporting memories...').start();
       try {
-        // TODO: Implement memory export
+        const memoryManager = new EnhancedMemoryManager({
+          storage: {
+            type: 'supabase',
+            config: {
+              url: config.get('supabaseUrl'),
+              key: config.get('supabaseKey')
+            }
+          },
+          vectorStore: {
+            dimensions: 1536,
+            similarity: 'cosine'
+          }
+        });
+
+        const memories = await memoryManager.queryMemories({
+          type: options.type,
+          agentId: options.agent
+        });
+
         const outputFile = options.output || `memories_${Date.now()}.${options.format}`;
-        await new Promise(r => setTimeout(r, 1000));
+        
+        if (options.format === 'json') {
+          await Deno.writeTextFile(outputFile, JSON.stringify(memories, null, 2));
+        } else {
+          // Convert to CSV
+          const csv = memories.map(m => [
+            m.entry.id,
+            m.entry.type,
+            m.entry.content,
+            m.entry.timestamp,
+            JSON.stringify(m.entry.metadata)
+          ].join(',')).join('\n');
+          
+          await Deno.writeTextFile(outputFile, csv);
+        }
+
         spinner.succeed(`Memories exported to ${outputFile}`);
       } catch (error) {
         spinner.fail('Failed to export memories');
@@ -138,8 +215,32 @@ export function memoryCommands(program: Command) {
     .action(async (file, options) => {
       const spinner = ora('Importing memories...').start();
       try {
-        // TODO: Implement memory import
-        await new Promise(r => setTimeout(r, 1000));
+        const memoryManager = new EnhancedMemoryManager({
+          storage: {
+            type: 'supabase',
+            config: {
+              url: config.get('supabaseUrl'),
+              key: config.get('supabaseKey')
+            }
+          },
+          vectorStore: {
+            dimensions: 1536,
+            similarity: 'cosine'
+          }
+        });
+
+        const content = await Deno.readTextFile(file);
+        const memories = JSON.parse(content);
+
+        for (const memory of memories) {
+          await memoryManager.saveMemory({
+            content: memory.content,
+            type: memory.type,
+            agentId: options.agent || memory.agentId,
+            metadata: memory.metadata
+          });
+        }
+
         spinner.succeed('Memories imported successfully');
       } catch (error) {
         spinner.fail('Failed to import memories');
@@ -156,16 +257,30 @@ export function memoryCommands(program: Command) {
     .action(async (options) => {
       const spinner = ora('Consolidating memories...').start();
       try {
-        // TODO: Implement memory consolidation
+        const memoryManager = new EnhancedMemoryManager({
+          storage: {
+            type: 'supabase',
+            config: {
+              url: config.get('supabaseUrl'),
+              key: config.get('supabaseKey')
+            }
+          },
+          vectorStore: {
+            dimensions: 1536,
+            similarity: 'cosine'
+          }
+        });
+
         if (options.dryRun) {
           spinner.info('Dry run - no changes will be made');
+          const stats = await memoryManager.getStats();
           console.log('Would consolidate:');
-          console.log('- 50 conversation memories');
-          console.log('- 10 working memories');
+          console.log(`- ${stats.byType.conversation || 0} conversation memories`);
+          console.log(`- ${stats.byType.working || 0} working memories`);
           return;
         }
 
-        await new Promise(r => setTimeout(r, 1000));
+        await memoryManager.consolidateMemories();
         spinner.succeed('Memories consolidated successfully');
       } catch (error) {
         spinner.fail('Failed to consolidate memories');
@@ -181,17 +296,21 @@ export function memoryCommands(program: Command) {
     .action(async (options) => {
       const spinner = ora('Fetching memory statistics...').start();
       try {
-        // TODO: Implement stats collection
-        const stats = {
-          totalMemories: 1000,
-          byType: {
-            conversation: 500,
-            working: 300,
-            episode: 200
+        const memoryManager = new EnhancedMemoryManager({
+          storage: {
+            type: 'supabase',
+            config: {
+              url: config.get('supabaseUrl'),
+              key: config.get('supabaseKey')
+            }
           },
-          oldestMemory: new Date('2024-01-01'),
-          averageSize: '2.5KB'
-        };
+          vectorStore: {
+            dimensions: 1536,
+            similarity: 'cosine'
+          }
+        });
+
+        const stats = await memoryManager.getStats();
         spinner.stop();
 
         console.log(chalk.bold('\nMemory Statistics:'));

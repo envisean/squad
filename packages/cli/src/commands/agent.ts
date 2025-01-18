@@ -4,6 +4,8 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { table } from 'table';
 import { z } from 'zod';
+import { ControlPlane } from '@squad/core';
+import { config } from '../config';
 
 const AgentConfigSchema = z.object({
   name: z.string(),
@@ -26,21 +28,24 @@ export function agentCommands(program: Command) {
     .action(async (options) => {
       const spinner = ora('Fetching agents...').start();
       try {
-        // TODO: Implement agent listing
-        const agents = [
-          { id: '1', name: 'Agent 1', type: 'strategic', status: 'active' }
-        ];
+        const controlPlane = new ControlPlane({
+          supabaseUrl: config.get('supabaseUrl'),
+          supabaseKey: config.get('supabaseKey')
+        });
+
+        const agents = await controlPlane.getActiveAgents();
         spinner.stop();
 
         const data = agents.map(a => [
           a.id,
-          a.name,
           a.type,
-          a.status
+          a.status,
+          a.edgeFunction,
+          new Date(a.metadata.lastHeartbeat).toLocaleString()
         ]);
 
         console.log(table([
-          ['ID', 'Name', 'Type', 'Status'],
+          ['ID', 'Type', 'Status', 'Location', 'Last Heartbeat'],
           ...data
         ]));
       } catch (error) {
@@ -107,12 +112,26 @@ export function agentCommands(program: Command) {
         const config = AgentConfigSchema.parse(answers);
         const spinner = ora('Creating agent...').start();
 
-        // TODO: Implement agent creation
-        await new Promise(r => setTimeout(r, 1000));
+        const controlPlane = new ControlPlane({
+          supabaseUrl: config.get('supabaseUrl'),
+          supabaseKey: config.get('supabaseKey')
+        });
+
+        const agentId = await controlPlane.registerAgent({
+          type: answers.type,
+          edgeFunction: 'agent-runner',
+          config: answers,
+          metadata: {
+            version: '1.0.0',
+            resources: {
+              cpu: 1,
+              memory: 512
+            }
+          }
+        });
 
         spinner.succeed('Agent created successfully');
-        console.log(chalk.green('\nAgent configuration:'));
-        console.log(JSON.stringify(config, null, 2));
+        console.log(chalk.green('\nAgent ID:'), agentId);
       } catch (error) {
         console.error(chalk.red('Failed to create agent:'), error);
       }
@@ -127,8 +146,15 @@ export function agentCommands(program: Command) {
     .action(async (id, options) => {
       const spinner = ora(`Starting agent ${id}...`).start();
       try {
-        // TODO: Implement agent start
-        await new Promise(r => setTimeout(r, 1000));
+        const controlPlane = new ControlPlane({
+          supabaseUrl: config.get('supabaseUrl'),
+          supabaseKey: config.get('supabaseKey')
+        });
+
+        await controlPlane.sendCommand(id, 'start', {
+          debug: options.debug
+        });
+
         spinner.succeed(`Agent ${id} started successfully`);
       } catch (error) {
         spinner.fail(`Failed to start agent ${id}`);
@@ -145,8 +171,15 @@ export function agentCommands(program: Command) {
     .action(async (id, options) => {
       const spinner = ora(`Stopping agent ${id}...`).start();
       try {
-        // TODO: Implement agent stop
-        await new Promise(r => setTimeout(r, 1000));
+        const controlPlane = new ControlPlane({
+          supabaseUrl: config.get('supabaseUrl'),
+          supabaseKey: config.get('supabaseKey')
+        });
+
+        await controlPlane.sendCommand(id, 'stop', {
+          force: options.force
+        });
+
         spinner.succeed(`Agent ${id} stopped successfully`);
       } catch (error) {
         spinner.fail(`Failed to stop agent ${id}`);
@@ -163,13 +196,25 @@ export function agentCommands(program: Command) {
     .option('-f, --follow', 'Follow log output')
     .action(async (id, options) => {
       try {
-        // TODO: Implement log fetching
-        console.log(chalk.gray(`Fetching logs for agent ${id}...`));
-        console.log(chalk.gray('2024-01-17 12:00:00 [INFO] Agent started'));
-        console.log(chalk.gray('2024-01-17 12:00:01 [INFO] Processing task'));
+        const controlPlane = new ControlPlane({
+          supabaseUrl: config.get('supabaseUrl'),
+          supabaseKey: config.get('supabaseKey')
+        });
+
+        // Get agent metrics
+        const metrics = await controlPlane.getAgentMetrics(id);
+        
+        console.log(chalk.bold('\nAgent Metrics:'));
+        metrics.slice(0, parseInt(options.lines)).forEach(m => {
+          console.log(chalk.gray(
+            `[${new Date(m.timestamp).toLocaleString()}] CPU: ${m.metrics.cpu}%, Memory: ${m.metrics.memory}MB`
+          ));
+        });
         
         if (options.follow) {
-          console.log(chalk.yellow('\nWatching for new logs... (Ctrl+C to exit)'));
+          console.log(chalk.yellow('\nWatching for new metrics... (Ctrl+C to exit)'));
+          // Subscribe to real-time updates
+          // TODO: Implement real-time subscription
         }
       } catch (error) {
         console.error(chalk.red('Failed to fetch logs:'), error);
@@ -183,20 +228,20 @@ export function agentCommands(program: Command) {
     .argument('<id>', 'Agent ID')
     .action(async (id) => {
       try {
-        // TODO: Fetch current config
-        const currentConfig = {
-          name: 'Agent 1',
-          type: 'strategic',
-          capabilities: ['reasoning', 'planning']
-        };
+        const controlPlane = new ControlPlane({
+          supabaseUrl: config.get('supabaseUrl'),
+          supabaseKey: config.get('supabaseKey')
+        });
+
+        // Get current agent
+        const agents = await controlPlane.getActiveAgents();
+        const currentAgent = agents.find(a => a.id === id);
+        
+        if (!currentAgent) {
+          throw new Error('Agent not found');
+        }
 
         const answers = await inquirer.prompt([
-          {
-            type: 'input',
-            name: 'name',
-            message: 'Agent name:',
-            default: currentConfig.name
-          },
           {
             type: 'checkbox',
             name: 'capabilities',
@@ -208,13 +253,14 @@ export function agentCommands(program: Command) {
               'code-generation',
               'data-analysis'
             ],
-            default: currentConfig.capabilities
+            default: currentAgent.config.capabilities
           }
         ]);
 
         const spinner = ora('Updating agent...').start();
-        // TODO: Implement update
-        await new Promise(r => setTimeout(r, 1000));
+        
+        await controlPlane.sendCommand(id, 'update', answers);
+        
         spinner.succeed('Agent updated successfully');
       } catch (error) {
         console.error(chalk.red('Failed to update agent:'), error);
@@ -242,8 +288,14 @@ export function agentCommands(program: Command) {
         }
 
         const spinner = ora('Deleting agent...').start();
-        // TODO: Implement deletion
-        await new Promise(r => setTimeout(r, 1000));
+        
+        const controlPlane = new ControlPlane({
+          supabaseUrl: config.get('supabaseUrl'),
+          supabaseKey: config.get('supabaseKey')
+        });
+
+        await controlPlane.unregisterAgent(id);
+        
         spinner.succeed('Agent deleted successfully');
       } catch (error) {
         console.error(chalk.red('Failed to delete agent:'), error);
