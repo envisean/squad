@@ -1,10 +1,11 @@
 {
-  "name": "@squad/agents",
+  "name": "@squad/cli",
   "version": "0.1.0",
   "private": true,
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "type": "module",
+  "bin": {
+    "squad": "./dist/index.js"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -13,12 +14,17 @@
   },
   "dependencies": {
     "@squad/core": "workspace:*",
-    "langchain": "^0.1.0",
-    "node-fetch": "^3.3.2",
-    "yaml": "^2.3.4",
+    "commander": "^11.1.0",
+    "inquirer": "^9.2.12",
+    "ora": "^8.0.1",
+    "chalk": "^5.3.0",
+    "table": "^6.8.1",
+    "conf": "^12.0.0",
+    "dotenv": "^16.3.1",
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/inquirer": "^9.0.7",
     "@types/node": "^20.11.5",
     "eslint": "^8.56.0",
     "tsup": "^8.0.1",
