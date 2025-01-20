@@ -29,7 +29,7 @@ export const AgentRegistrationSchema = z.object({
   id: z.string().uuid(),
   type: z.enum(['strategic', 'job']),
   status: AgentStatusSchema,
-  edgeFunction: z.string(),
+  edge_function: z.string(),
   config: z.record(z.unknown()),
   metadata: z.object({
     region: z.string().optional(),

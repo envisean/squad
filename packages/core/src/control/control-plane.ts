@@ -32,7 +32,15 @@ export class ControlPlane {
 
     this.supabase = createClient(
       config.supabaseUrl,
-      config.supabaseKey
+      config.supabaseKey,
+      {
+        db: {
+          schema: 'public'
+        },
+        auth: {
+          persistSession: false
+        }
+      }
     );
 
     this.queueManager = new QueueManager(
