@@ -152,7 +152,7 @@ export class EmailProcessor {
 
     // Add steps for action items
     if (actionItems.length > 0) {
-      steps.push(\`Create \${actionItems.length} tasks in task management system\`);
+      steps.push(`Create ${actionItems.length} tasks in task management system`);
       
       const meetingItems = actionItems.filter(item => item.type === 'meeting');
       if (meetingItems.length > 0) {
