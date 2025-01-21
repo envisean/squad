@@ -1,0 +1,5 @@
+[functions.gmail-auth]
+verify_jwt = true
+
+[functions.gmail-callback]
+verify_jwt = false
