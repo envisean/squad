@@ -27,25 +27,25 @@ export class FireCrawl {
       const response = await this.app.crawlUrl(url, {
         limit: 100,
         scrapeOptions: {
-          formats: ['markdown', 'html']
+          formats: ["markdown", "html"]
         }
       });
 
-      if (!response.success) {
-        throw new Error(`Failed to crawl ${url}: ${response.error}`);
+      if (!response?.success || !response?.data) {
+        throw new Error(`Failed to crawl ${url}: ${response?.error || "Unknown error"}`);
       }
 
       // Transform the response into our CrawlResult format
       return response.data.map((page: any) => ({
-        url: page.metadata.sourceURL,
-        title: page.metadata.title || '',
-        content: page.markdown || '',
-        links: page.metadata.links || [],
-        metadata: page.metadata
+        url: page?.metadata?.sourceURL || url,
+        title: page?.metadata?.title || "",
+        content: page?.markdown || "",
+        links: page?.metadata?.links || [],
+        metadata: page?.metadata || {}
       }));
 
     } catch (error) {
-      console.error('FireCrawl error:', error);
+      console.error("FireCrawl error:", error);
       throw error;
     }
   }
@@ -53,23 +53,23 @@ export class FireCrawl {
   async scrape(url: string): Promise<CrawlResult> {
     try {
       const response = await this.app.scrapeUrl(url, {
-        formats: ['markdown', 'html']
+        formats: ["markdown", "html"]
       });
 
-      if (!response.success) {
-        throw new Error(`Failed to scrape ${url}: ${response.error}`);
+      if (!response?.success || !response?.data) {
+        throw new Error(`Failed to scrape ${url}: ${response?.error || "Unknown error"}`);
       }
 
       return {
-        url: response.data.metadata.sourceURL,
-        title: response.data.metadata.title || '',
-        content: response.data.markdown || '',
-        links: response.data.metadata.links || [],
-        metadata: response.data.metadata
+        url: response.data?.metadata?.sourceURL || url,
+        title: response.data?.metadata?.title || "",
+        content: response.data?.markdown || "",
+        links: response.data?.metadata?.links || [],
+        metadata: response.data?.metadata || {}
       };
 
     } catch (error) {
-      console.error('FireCrawl error:', error);
+      console.error("FireCrawl error:", error);
       throw error;
     }
   }
