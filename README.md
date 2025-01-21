@@ -493,6 +493,11 @@ Ensure your IDE supports:
 - Tailwind CSS
 - PostCSS
 
+## Documentation
+
+The following documentation is available:
+- [Task Processing System](docs/TASK_PROCESSING.md) - Learn about our task queue system, agents, and scaling considerations
+
 ## Key Features
 
 1. **Agent Management**
