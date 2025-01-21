@@ -10,15 +10,29 @@ async function testFireCrawl() {
   });
 
   try {
-    console.log('Crawling concreit.com...');
-    const result = await crawler.crawl('https://concreit.com');
+    // Test single page scraping first
+    console.log('Scraping concreit.com...');
+    const result = await crawler.scrape('https://concreit.com');
     
-    console.log('\nCrawl Results:');
+    console.log('\nScrape Results:');
     console.log('Title:', result.title);
     console.log('Content Length:', result.content.length);
-    console.log('Links Found:', result.links.length);
     console.log('\nFirst 500 chars of content:');
     console.log(result.content.substring(0, 500));
+
+    // Test crawling
+    console.log('\nCrawling concreit.com...');
+    const crawlResults = await crawler.crawl('https://concreit.com');
+    
+    console.log('\nCrawl Results:');
+    console.log('Pages Found:', crawlResults.length);
+    
+    if (crawlResults.length > 0) {
+      console.log('\nFirst page:');
+      console.log('URL:', crawlResults[0].url);
+      console.log('Title:', crawlResults[0].title);
+      console.log('Content Preview:', crawlResults[0].content.substring(0, 200));
+    }
     
   } catch (error) {
     console.error('Error:', error);
