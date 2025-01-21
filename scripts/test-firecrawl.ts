@@ -11,8 +11,8 @@ async function testFireCrawl() {
 
   try {
     // Test single page scraping first
-    console.log('Scraping concreit.com...');
-    const result = await crawler.scrape('https://concreit.com');
+    console.log('Scraping example.com...');
+    const result = await crawler.scrape('https://example.com');
     
     console.log('\nScrape Results:');
     console.log('Title:', result.title);
@@ -21,8 +21,8 @@ async function testFireCrawl() {
     console.log(result.content.substring(0, 500));
 
     // Test crawling
-    console.log('\nCrawling concreit.com...');
-    const crawlResults = await crawler.crawl('https://concreit.com');
+    console.log('\nCrawling firecrawl.dev docs...');
+    const crawlResults = await crawler.crawl('https://docs.firecrawl.dev');
     
     console.log('\nCrawl Results:');
     console.log('Pages Found:', crawlResults.length);
