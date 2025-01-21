@@ -50,23 +50,23 @@ max_frequency = "1m0s"
 
 [auth.email.template.invite]
 subject = "You have been invited"
-content = "\n<h2>You have been invited</h2>\n\n<p>You have been invited to create a user on {{ .SiteURL }}. Follow this link to accept the invite:</p>\n<p><a href=\"{{ .ConfirmationURL }}\">Accept the invite</a></p>\n"
+content_path = "supabase/templates/invite.html"
 
 [auth.email.template.confirm]
 subject = "Confirm your email"
-content = "\n<h2>Confirm your email</h2>\n\n<p>Follow this link to confirm your email:</p>\n<p><a href=\"{{ .ConfirmationURL }}\">Confirm your email</a></p>\n"
+content_path = "supabase/templates/confirm.html"
 
 [auth.email.template.confirm_change]
 subject = "Confirm email change"
-content = "\n<h2>Confirm email change</h2>\n\n<p>Follow this link to confirm your new email:</p>\n<p><a href=\"{{ .ConfirmationURL }}\">Confirm email change</a></p>\n"
+content_path = "supabase/templates/confirm-change.html"
 
 [auth.email.template.reset]
 subject = "Reset your password"
-content = "\n<h2>Reset your password</h2>\n\n<p>Follow this link to reset the password for your user:</p>\n<p><a href=\"{{ .ConfirmationURL }}\">Reset password</a></p>\n"
+content_path = "supabase/templates/reset.html"
 
 [auth.email.template.magic_link]
 subject = "Your Magic Link"
-content = "\n<h2>Magic Link</h2>\n\n<p>Follow this link to login:</p>\n<p><a href=\"{{ .ConfirmationURL }}\">Log In</a></p>\n"
+content_path = "supabase/templates/magic-link.html"
 
 [auth.sms]
 enable_signup = true
@@ -78,10 +78,10 @@ template = "Your code is {{ .Code }}"
 enabled = true
 account_sid = ""  # Will be set via environment variable AUTH_SMS_TWILIO_ACCOUNT_SID
 auth_token = ""   # Will be set via environment variable AUTH_SMS_TWILIO_AUTH_TOKEN
-message_service_id = ""  # Will be set via environment variable AUTH_SMS_TWILIO_MESSAGE_SERVICE_ID
+messaging_service_id = ""  # Will be set via environment variable AUTH_SMS_TWILIO_MESSAGE_SERVICE_ID
 
 [auth.external.google]
-enabled = false  # We'll handle OAuth in Edge Functions
+enabled = false  # We will handle OAuth in Edge Functions
 client_id = ""
 secret = "hash:"
 url = ""
