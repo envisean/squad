@@ -1,8 +1,8 @@
-import { OpenAI } from 'langchain/llms/openai';
-import { PromptTemplate } from 'langchain/prompts';
-import { LLMChain } from 'langchain/chains';
-import { Document } from 'langchain/document';
-import { GmailLoader } from 'langchain/document_loaders/web/gmail';
+import { OpenAI } from '@langchain/openai';
+import { PromptTemplate } from '@langchain/core/prompts';
+import { LLMChain } from '@langchain/core/chains';
+import { Document } from '@langchain/core/documents';
+import { GmailLoader } from '@langchain/community/document_loaders/web/gmail';
 import { 
   Email, 
   EmailClassification,
