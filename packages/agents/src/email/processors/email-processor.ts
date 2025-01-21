@@ -1,8 +1,8 @@
 import { OpenAI } from '@langchain/openai';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { LLMChain } from 'langchain/chains';
-import { Document } from '@langchain/core/documents';
-import { GmailLoader } from 'langchain/document_loaders/web/gmail';
+import { google } from 'googleapis';
+import { OAuth2Client } from 'google-auth-library';
 import { 
   Email, 
   EmailClassification,
@@ -173,19 +173,71 @@ export class EmailProcessor {
     return steps;
   }
 
-  static async createGmailLoader(config: {
+  static async loadEmails(config: {
     email: string;
     clientId: string;
     clientSecret: string;
     refreshToken: string;
     query?: string;
-  }): Promise<GmailLoader> {
-    return new GmailLoader({
-      email: config.email,
-      clientId: config.clientId,
-      clientSecret: config.clientSecret,
-      refreshToken: config.refreshToken,
-      searchQuery: config.query || 'newer_than:1d'
+  }): Promise<Email[]> {
+    // Create OAuth2 client
+    const oauth2Client = new OAuth2Client(
+      config.clientId,
+      config.clientSecret,
+      'http://localhost:3000/oauth2callback'
+    );
+
+    // Set credentials
+    oauth2Client.setCredentials({
+      refresh_token: config.refreshToken
     });
+
+    // Create Gmail client
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    // List messages
+    const response = await gmail.users.messages.list({
+      userId: 'me',
+      q: config.query || 'newer_than:1d'
+    });
+
+    if (!response.data.messages) {
+      return [];
+    }
+
+    // Get full message details
+    const emails: Email[] = [];
+    for (const message of response.data.messages.slice(0, 3)) { // Limit to 3 for testing
+      const details = await gmail.users.messages.get({
+        userId: 'me',
+        id: message.id!,
+        format: 'full'
+      });
+
+      const headers = details.data.payload?.headers;
+      if (!headers) continue;
+
+      const getHeader = (name: string) => 
+        headers.find(h => h.name.toLowerCase() === name.toLowerCase())?.value || '';
+
+      const email: Email = {
+        id: details.data.id!,
+        threadId: details.data.threadId!,
+        from: getHeader('from'),
+        to: getHeader('to').split(',').map(e => e.trim()),
+        subject: getHeader('subject'),
+        body: {
+          text: details.data.snippet || '',
+          html: details.data.payload?.body?.data 
+            ? Buffer.from(details.data.payload.body.data, 'base64').toString('utf8')
+            : ''
+        },
+        timestamp: new Date(parseInt(details.data.internalDate!))
+      };
+
+      emails.push(email);
+    }
+
+    return emails;
   }
 }

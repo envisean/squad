@@ -1,6 +1,5 @@
 import { config } from 'dotenv';
 import { EmailProcessor } from '../packages/agents/src/email/processors/email-processor';
-import { Email } from '../packages/agents/src/email/types';
 
 // Load environment variables
 config({ path: '.env.local' });
@@ -14,8 +13,9 @@ async function testEmailProcessor() {
       temperature: 0.3
     });
 
-    // Create Gmail loader
-    const loader = await EmailProcessor.createGmailLoader({
+    // Load emails
+    console.log('Loading recent emails...');
+    const emails = await EmailProcessor.loadEmails({
       email: process.env.OWNER_EMAIL!,
       clientId: process.env.GMAIL_CLIENT_ID!,
       clientSecret: process.env.GMAIL_CLIENT_SECRET!,
@@ -23,31 +23,42 @@ async function testEmailProcessor() {
       query: 'newer_than:1d'
     });
 
-    console.log('Loading recent emails...');
-    const docs = await loader.load();
-    console.log(`Found ${docs.length} emails`);
+    console.log(`Found ${emails.length} emails`);
 
-    // Process first 3 emails
-    for (const doc of docs.slice(0, 3)) {
-      console.log('\nProcessing email:', doc.metadata.subject);
+    // Process each email
+    for (const email of emails) {
+      console.log('\n-----------------------------------');
+      console.log(`Processing email: ${email.subject}`);
+      console.log(`From: ${email.from}`);
+      console.log(`Time: ${email.timestamp}`);
       
-      // Convert to our Email type
-      const email: Email = {
-        id: doc.metadata.messageId,
-        threadId: doc.metadata.threadId,
-        from: doc.metadata.from,
-        to: Array.isArray(doc.metadata.to) ? doc.metadata.to : [doc.metadata.to],
-        subject: doc.metadata.subject,
-        body: {
-          text: doc.pageContent,
-          html: doc.metadata.textHtml
-        },
-        timestamp: new Date(doc.metadata.time)
-      };
+      try {
+        const result = await processor.processEmail(email);
+        console.log('\nAnalysis Results:');
+        console.log('Priority:', result.classification.priority);
+        console.log('Categories:', result.classification.categories);
+        console.log('Requires Human:', result.classification.requires_human);
+        console.log('Sentiment:', result.classification.sentiment);
+        
+        if (result.action_items.length > 0) {
+          console.log('\nAction Items:');
+          result.action_items.forEach((item, index) => {
+            console.log(`\n${index + 1}. ${item.type.toUpperCase()}`);
+            console.log(`   Description: ${item.description}`);
+            if (item.due_date) console.log(`   Due: ${item.due_date}`);
+            if (item.assignee) console.log(`   Assignee: ${item.assignee}`);
+            console.log(`   Priority: ${item.priority}`);
+          });
+        }
 
-      // Process email
-      const result = await processor.processEmail(email);
-      console.log('Processing result:', JSON.stringify(result, null, 2));
+        console.log('\nNext Steps:');
+        result.next_steps.forEach((step, index) => {
+          console.log(`${index + 1}. ${step}`);
+        });
+
+      } catch (error) {
+        console.error('Error processing email:', error);
+      }
     }
 
   } catch (error) {
