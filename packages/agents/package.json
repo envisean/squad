@@ -14,14 +14,13 @@
   "dependencies": {
     "@langchain/community": "^0.3.26",
     "@squad/core": "workspace:*",
-    "langchain": "^0.1.0",
+    "langchain": "^0.3.12",
     "node-fetch": "^3.3.2",
     "yaml": "^2.3.4",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20.11.5",
-    "eslint": "^8.56.0",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   }
