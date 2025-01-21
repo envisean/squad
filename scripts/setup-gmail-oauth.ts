@@ -1,7 +1,5 @@
 import { config } from "dotenv";
 import { OAuth2Client } from "google-auth-library";
-import * as http from "http";
-import open from "open";
 
 // Load environment variables
 config({ path: ".env.local" });
@@ -17,7 +15,7 @@ async function getGmailToken() {
   const oauth2Client = new OAuth2Client(
     process.env.GMAIL_CLIENT_ID,
     process.env.GMAIL_CLIENT_SECRET,
-    "http://localhost:3000/oauth2callback"
+    "postmessage"  // Special value that enables copy/paste workflow
   );
 
   // Generate auth url
@@ -27,46 +25,28 @@ async function getGmailToken() {
     prompt: "consent"  // Force to get refresh token
   });
 
-  console.log("Authorize this app by visiting this url:", authUrl);
-  
-  // Open the URL in browser
-  await open(authUrl);
+  console.log("\nPlease visit this URL to authorize the application:");
+  console.log("\n", authUrl);
+  console.log("\nAfter authorization, you will get a code. Please enter it here:");
 
-  // Create server to handle callback
-  const server = http.createServer(async (req, res) => {
+  // Read the code from stdin
+  process.stdin.resume();
+  process.stdin.setEncoding("utf8");
+
+  process.stdin.on("data", async (code) => {
     try {
-      const url = new URL(req.url!, `http://${req.headers.host}`);
-      const code = url.searchParams.get("code");
-
-      if (code) {
-        // Exchange code for tokens
-        const { tokens } = await oauth2Client.getToken(code);
-        console.log("\nAuthorization successful!");
-        console.log("\nAdd these to your .env.local file:");
-        console.log("\nGMAIL_ACCESS_TOKEN=" + tokens.access_token);
-        console.log("GMAIL_REFRESH_TOKEN=" + tokens.refresh_token);
-        console.log("GMAIL_TOKEN_EXPIRY=" + tokens.expiry_date);
-
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.end("<h1>Authorization successful!</h1><p>You can close this window and check your terminal for the tokens.</p>");
-        
-        // Close server and exit
-        server.close();
-        process.exit(0);
-      }
-
+      // Exchange code for tokens
+      const { tokens } = await oauth2Client.getToken(code.trim());
+      console.log("\nAuthorization successful!");
+      console.log("\nAdd these to your .env.local file:");
+      console.log("\nGMAIL_ACCESS_TOKEN=" + tokens.access_token);
+      console.log("GMAIL_REFRESH_TOKEN=" + tokens.refresh_token);
+      console.log("GMAIL_TOKEN_EXPIRY=" + tokens.expiry_date);
+      process.exit(0);
     } catch (error) {
       console.error("Error getting tokens:", error);
-      res.writeHead(500, { "Content-Type": "text/html" });
-      res.end("<h1>Authorization failed!</h1><p>Check the console for more information.</p>");
-      server.close();
       process.exit(1);
     }
-  });
-
-  // Start server
-  server.listen(3000, () => {
-    console.log("\nWaiting for authorization...");
   });
 }
 
