@@ -27,7 +27,10 @@ export class FireCrawl {
       const response = await this.app.crawlUrl(url, {
         limit: 100,
         scrapeOptions: {
-          formats: ["markdown", "html"]
+          formats: ["markdown", "html"],
+          waitFor: 5000,  // Wait 5 seconds for content to load
+          timeout: 60000,  // 60 second timeout
+          onlyMainContent: true
         }
       });
 
@@ -53,7 +56,14 @@ export class FireCrawl {
   async scrape(url: string): Promise<CrawlResult> {
     try {
       const response = await this.app.scrapeUrl(url, {
-        formats: ["markdown", "html"]
+        formats: ["markdown", "html"],
+        waitFor: 5000,  // Wait 5 seconds for content to load
+        timeout: 60000,  // 60 second timeout
+        onlyMainContent: true,
+        actions: [
+          { type: "wait", milliseconds: 2000 },  // Initial wait
+          { type: "scrape" }  // Explicit scrape action
+        ]
       });
 
       if (!response?.success || !response?.data) {
