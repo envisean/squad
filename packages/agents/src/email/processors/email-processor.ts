@@ -1,4 +1,4 @@
-import { OpenAI } from '@langchain/openai';
+import { ChatOpenAI } from '@langchain/openai';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { LLMChain } from 'langchain/chains';
 import { google } from 'googleapis';
@@ -18,12 +18,12 @@ export interface EmailProcessorConfig {
 }
 
 export class EmailProcessor {
-  private llm: OpenAI;
+  private llm: ChatOpenAI;
   private classificationChain: LLMChain;
   private actionItemChain: LLMChain;
 
   constructor(config: EmailProcessorConfig) {
-    this.llm = new OpenAI({
+    this.llm = new ChatOpenAI({
       openAIApiKey: config.openaiApiKey,
       modelName: config.modelName || 'gpt-4',
       temperature: config.temperature || 0.3,
