@@ -60,7 +60,7 @@ async function ingestWebsite(url: string) {
       }
     );
 
-    console.log('Content successfully loaded into vector store!');
+    console.log("Content successfully loaded into vector store!");
     
     // Return some stats
     return {
@@ -71,7 +71,7 @@ async function ingestWebsite(url: string) {
     };
 
   } catch (error) {
-    console.error('Error ingesting website:', error);
+    console.error("Error ingesting website:", error);
     throw error;
   }
 }
@@ -80,16 +80,16 @@ async function ingestWebsite(url: string) {
 async function main() {
   const url = process.argv[2];
   if (!url) {
-    console.error('Please provide a URL to ingest');
+    console.error("Please provide a URL to ingest");
     process.exit(1);
   }
 
   try {
     const stats = await ingestWebsite(url);
-    console.log('\nIngestion Stats:');
+    console.log("\nIngestion Stats:");
     console.log(JSON.stringify(stats, null, 2));
   } catch (error) {
-    console.error('Failed to ingest website:', error);
+    console.error("Failed to ingest website:", error);
     process.exit(1);
   }
 }
