@@ -73,12 +73,8 @@ enable_signup = true
 enable_confirmations = false
 template = "Your code is {{ .Code }}"
 
-# Add Twilio as SMS provider
 [auth.sms.twilio]
-enabled = true
-account_sid = ""  # Will be set via environment variable AUTH_SMS_TWILIO_ACCOUNT_SID
-auth_token = ""   # Will be set via environment variable AUTH_SMS_TWILIO_AUTH_TOKEN
-messaging_service_id = ""  # Will be set via environment variable AUTH_SMS_TWILIO_MESSAGE_SERVICE_ID
+enabled = false  # Enable and configure in Supabase dashboard
 
 [auth.external.google]
 enabled = false  # We will handle OAuth in Edge Functions
