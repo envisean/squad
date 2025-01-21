@@ -64,12 +64,25 @@ max_frequency = "1m0s"
 otp_length = 6
 otp_expiry = 3600
 
-[auth.email.template]
-invite = ""
-confirm = ""
-confirm_change = ""
-reset = ""
-magic_link = ""
+[auth.email.template.invite]
+subject = ""
+content = ""
+
+[auth.email.template.confirm]
+subject = ""
+content = ""
+
+[auth.email.template.confirm_change]
+subject = ""
+content = ""
+
+[auth.email.template.reset]
+subject = ""
+content = ""
+
+[auth.email.template.magic_link]
+subject = ""
+content = ""
 
 [auth.sms]
 enable_signup = true
