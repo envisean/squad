@@ -76,9 +76,9 @@ template = "Your code is {{ .Code }}"
 # Add Twilio as SMS provider
 [auth.sms.twilio]
 enabled = true
-account_sid = ""  # Will be set via environment variable SUPABASE_AUTH_SMS_TWILIO_ACCOUNT_SID
-auth_token = ""   # Will be set via environment variable SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN
-message_service_id = ""  # Will be set via environment variable SUPABASE_AUTH_SMS_TWILIO_MESSAGE_SERVICE_ID
+account_sid = ""  # Will be set via environment variable AUTH_SMS_TWILIO_ACCOUNT_SID
+auth_token = ""   # Will be set via environment variable AUTH_SMS_TWILIO_AUTH_TOKEN
+message_service_id = ""  # Will be set via environment variable AUTH_SMS_TWILIO_MESSAGE_SERVICE_ID
 
 [auth.external.google]
 enabled = false  # We'll handle OAuth in Edge Functions
