@@ -10,13 +10,16 @@ importers:
     dependencies:
       '@langchain/community':
         specifier: ^0.3.26
-        version: 0.3.26(@browserbasehq/sdk@2.0.0)(@browserbasehq/stagehand@1.9.0(@playwright/test@1.49.1)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.78.1(zod@3.24.1))(zod@3.24.1))(@ibm-cloud/watsonx-ai@1.3.2(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1))))(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1)))(@supabase/supabase-js@2.47.15)(axios@1.7.4)(google-auth-library@9.15.0)(googleapis@144.0.0)(handlebars@4.7.8)(ibm-cloud-sdk-core@5.1.1)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.78.1(zod@3.24.1))(playwright@1.49.1)(ws@8.18.0)
+        version: 0.3.26(@browserbasehq/sdk@2.0.0)(@browserbasehq/stagehand@1.9.0(@playwright/test@1.49.1)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.78.1(zod@3.24.1))(zod@3.24.1))(@ibm-cloud/watsonx-ai@1.3.2(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1))))(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1)))(@supabase/supabase-js@2.47.15)(axios@1.7.9)(google-auth-library@9.15.0)(googleapis@144.0.0)(handlebars@4.7.8)(ibm-cloud-sdk-core@5.1.1)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.78.1(zod@3.24.1))(playwright@1.49.1)(ws@8.18.0)
       '@langchain/core':
         specifier: ^0.3.30
         version: 0.3.30(openai@4.78.1(zod@3.24.1))
       '@langchain/openai':
         specifier: ^0.3.17
         version: 0.3.17(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1)))
+      axios:
+        specifier: ^1.7.9
+        version: 1.7.9
       google-auth-library:
         specifier: ^9.15.0
         version: 9.15.0
@@ -175,7 +178,7 @@ importers:
         version: link:../core
       langchain:
         specifier: ^0.1.0
-        version: 0.1.37(@browserbasehq/sdk@2.0.0)(@supabase/postgrest-js@1.17.11)(@supabase/supabase-js@2.47.15)(axios@1.7.4)(google-auth-library@9.15.0)(googleapis@144.0.0)(handlebars@4.7.8)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.78.1(zod@3.24.1))(playwright@1.49.1)(ws@8.18.0)
+        version: 0.1.37(@browserbasehq/sdk@2.0.0)(@supabase/postgrest-js@1.17.11)(@supabase/supabase-js@2.47.15)(axios@1.7.9)(google-auth-library@9.15.0)(googleapis@144.0.0)(handlebars@4.7.8)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.78.1(zod@3.24.1))(playwright@1.49.1)(ws@8.18.0)
       node-fetch:
         specifier: ^3.3.2
         version: 3.3.2
@@ -255,7 +258,7 @@ importers:
         version: 0.3.17(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1)))
       langchain:
         specifier: ^0.1.0
-        version: 0.1.37(@browserbasehq/sdk@2.0.0)(@supabase/postgrest-js@1.17.11)(@supabase/supabase-js@2.47.15)(axios@1.7.4)(google-auth-library@9.15.0)(googleapis@144.0.0)(handlebars@4.7.8)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.78.1(zod@3.24.1))(playwright@1.49.1)(ws@8.18.0)
+        version: 0.1.37(@browserbasehq/sdk@2.0.0)(@supabase/postgrest-js@1.17.11)(@supabase/supabase-js@2.47.15)(axios@1.7.9)(google-auth-library@9.15.0)(googleapis@144.0.0)(handlebars@4.7.8)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.78.1(zod@3.24.1))(playwright@1.49.1)(ws@8.18.0)
       zod:
         specifier: ^3.24.1
         version: 3.24.1
@@ -2730,6 +2733,9 @@ packages:
 
   axios@1.7.4:
     resolution: {integrity: sha512-DukmaFRnY6AzAALSH4J2M3k6PkaC+MfaAGdEERRWcC9q3/TWQwLpHR8ZRLKTdQ3aBDL64EdluRDjJqKw+BPZEw==}
+
+  axios@1.7.9:
+    resolution: {integrity: sha512-LhLcE7Hbiryz8oMDdDptSrWowmB4Bl6RCt6sIJKpRB4XtVf0iEgewX3au/pJqm+Py1kCASkb/FFKjxQaLtxJvw==}
 
   babel-jest@29.7.0:
     resolution: {integrity: sha512-BrvGY3xZSwEcCzKvKsCi2GgHqDqsYkOP4/by5xCgIwGXQxIEh+8ew3gmrE1y7XRR6LHZIj6yLYnUi/mm2KXKBg==}
@@ -7126,7 +7132,7 @@ snapshots:
       - encoding
       - openai
 
-  '@langchain/community@0.3.26(@browserbasehq/sdk@2.0.0)(@browserbasehq/stagehand@1.9.0(@playwright/test@1.49.1)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.78.1(zod@3.24.1))(zod@3.24.1))(@ibm-cloud/watsonx-ai@1.3.2(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1))))(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1)))(@supabase/supabase-js@2.47.15)(axios@1.7.4)(google-auth-library@9.15.0)(googleapis@144.0.0)(handlebars@4.7.8)(ibm-cloud-sdk-core@5.1.1)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.78.1(zod@3.24.1))(playwright@1.49.1)(ws@8.18.0)':
+  '@langchain/community@0.3.26(@browserbasehq/sdk@2.0.0)(@browserbasehq/stagehand@1.9.0(@playwright/test@1.49.1)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.78.1(zod@3.24.1))(zod@3.24.1))(@ibm-cloud/watsonx-ai@1.3.2(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1))))(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1)))(@supabase/supabase-js@2.47.15)(axios@1.7.9)(google-auth-library@9.15.0)(googleapis@144.0.0)(handlebars@4.7.8)(ibm-cloud-sdk-core@5.1.1)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.78.1(zod@3.24.1))(playwright@1.49.1)(ws@8.18.0)':
     dependencies:
       '@browserbasehq/stagehand': 1.9.0(@playwright/test@1.49.1)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.78.1(zod@3.24.1))(zod@3.24.1)
       '@ibm-cloud/watsonx-ai': 1.3.2(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1)))
@@ -7137,7 +7143,7 @@ snapshots:
       flat: 5.0.2
       ibm-cloud-sdk-core: 5.1.1
       js-yaml: 4.1.0
-      langchain: 0.3.12(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1)))(axios@1.7.4)(handlebars@4.7.8)(openai@4.78.1(zod@3.24.1))
+      langchain: 0.3.12(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1)))(axios@1.7.9)(handlebars@4.7.8)(openai@4.78.1(zod@3.24.1))
       langsmith: 0.2.15(openai@4.78.1(zod@3.24.1))
       openai: 4.78.1(zod@3.24.1)
       uuid: 10.0.0
@@ -8004,6 +8010,14 @@ snapshots:
       possible-typed-array-names: 1.0.0
 
   axios@1.7.4(debug@4.4.0):
+    dependencies:
+      follow-redirects: 1.15.9(debug@4.4.0)
+      form-data: 4.0.1
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
+  axios@1.7.9:
     dependencies:
       follow-redirects: 1.15.9(debug@4.4.0)
       form-data: 4.0.1
@@ -9390,7 +9404,7 @@ snapshots:
       isstream: 0.1.2
       jsonwebtoken: 9.0.2
       mime-types: 2.1.35
-      retry-axios: 2.6.0(axios@1.7.4)
+      retry-axios: 2.6.0(axios@1.7.4(debug@4.4.0))
       tough-cookie: 4.1.4
     transitivePeerDependencies:
       - supports-color
@@ -10102,7 +10116,7 @@ snapshots:
 
   kleur@3.0.3: {}
 
-  langchain@0.1.37(@browserbasehq/sdk@2.0.0)(@supabase/postgrest-js@1.17.11)(@supabase/supabase-js@2.47.15)(axios@1.7.4)(google-auth-library@9.15.0)(googleapis@144.0.0)(handlebars@4.7.8)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.78.1(zod@3.24.1))(playwright@1.49.1)(ws@8.18.0):
+  langchain@0.1.37(@browserbasehq/sdk@2.0.0)(@supabase/postgrest-js@1.17.11)(@supabase/supabase-js@2.47.15)(axios@1.7.9)(google-auth-library@9.15.0)(googleapis@144.0.0)(handlebars@4.7.8)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.78.1(zod@3.24.1))(playwright@1.49.1)(ws@8.18.0):
     dependencies:
       '@anthropic-ai/sdk': 0.9.1
       '@langchain/community': 0.0.57(@supabase/postgrest-js@1.17.11)(@supabase/supabase-js@2.47.15)(google-auth-library@9.15.0)(googleapis@144.0.0)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.78.1(zod@3.24.1))(ws@8.18.0)
@@ -10125,7 +10139,7 @@ snapshots:
     optionalDependencies:
       '@browserbasehq/sdk': 2.0.0
       '@supabase/supabase-js': 2.47.15
-      axios: 1.7.4(debug@4.4.0)
+      axios: 1.7.9
       google-auth-library: 9.15.0
       handlebars: 4.7.8
       ignore: 5.3.2
@@ -10203,7 +10217,7 @@ snapshots:
       - vectordb
       - voy-search
 
-  langchain@0.3.12(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1)))(axios@1.7.4)(handlebars@4.7.8)(openai@4.78.1(zod@3.24.1)):
+  langchain@0.3.12(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1)))(axios@1.7.9)(handlebars@4.7.8)(openai@4.78.1(zod@3.24.1)):
     dependencies:
       '@langchain/core': 0.3.30(openai@4.78.1(zod@3.24.1))
       '@langchain/openai': 0.3.17(@langchain/core@0.3.30(openai@4.78.1(zod@3.24.1)))
@@ -10219,7 +10233,7 @@ snapshots:
       zod: 3.24.1
       zod-to-json-schema: 3.24.1(zod@3.24.1)
     optionalDependencies:
-      axios: 1.7.4(debug@4.4.0)
+      axios: 1.7.9
       handlebars: 4.7.8
     transitivePeerDependencies:
       - encoding
@@ -10995,7 +11009,7 @@ snapshots:
       onetime: 7.0.0
       signal-exit: 4.1.0
 
-  retry-axios@2.6.0(axios@1.7.4):
+  retry-axios@2.6.0(axios@1.7.4(debug@4.4.0)):
     dependencies:
       axios: 1.7.4(debug@4.4.0)
 

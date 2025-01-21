@@ -38,6 +38,7 @@
     "@langchain/community": "^0.3.26",
     "@langchain/core": "^0.3.30",
     "@langchain/openai": "^0.3.17",
+    "axios": "^1.7.9",
     "google-auth-library": "^9.15.0",
     "googleapis": "^144.0.0",
     "open": "^10.1.0"

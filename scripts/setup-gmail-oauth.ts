@@ -12,11 +12,11 @@ const SCOPES = [
 ];
 
 async function getGmailToken() {
-  const oauth2Client = new OAuth2Client(
-    process.env.GMAIL_CLIENT_ID,
-    process.env.GMAIL_CLIENT_SECRET,
-    "postmessage"  // Special value that enables copy/paste workflow
-  );
+  const oauth2Client = new OAuth2Client({
+    clientId: process.env.GMAIL_CLIENT_ID,
+    clientSecret: process.env.GMAIL_CLIENT_SECRET,
+    redirectUri: "urn:ietf:wg:oauth:2.0:oob"  // Use out-of-band flow
+  });
 
   // Generate auth url
   const authUrl = oauth2Client.generateAuthUrl({
