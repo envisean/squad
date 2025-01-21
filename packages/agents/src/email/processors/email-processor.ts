@@ -1,6 +1,6 @@
 import { OpenAI } from '@langchain/openai';
 import { PromptTemplate } from '@langchain/core/prompts';
-import { LLMChain } from '@langchain/core/chains';
+import { LLMChain } from 'langchain/chains';
 import { Document } from '@langchain/core/documents';
 import { GmailLoader } from '@langchain/community/document_loaders/web/gmail';
 import { 
