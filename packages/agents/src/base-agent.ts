@@ -1,4 +1,4 @@
-import { AgentConfig, AgentState, Task, TaskResult } from '@squad/core';
+import { BaseAgent, type AgentTask, type TaskResult } from '@squad/core';
 
 export abstract class BaseAgent {
   protected config: AgentConfig;

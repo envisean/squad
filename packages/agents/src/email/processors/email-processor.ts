@@ -9,6 +9,7 @@ import {
   EmailProcessingResult,
   ActionItem 
 } from '../types';
+import { type TaskResult } from '@squad/core';
 
 export interface EmailProcessorConfig {
   openaiApiKey: string;

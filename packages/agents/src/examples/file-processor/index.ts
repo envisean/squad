@@ -1,59 +1,55 @@
-import { JobAgent } from '../../core/job-agent';
-import type { Task, TaskResult } from '../../core/types';
-import {
-  FileProcessorConfig,
-  FileProcessorConfigSchema,
-  FileProcessorInputSchema
-} from './types';
-import fetch from 'node-fetch';
-import { parse as parseYaml } from 'yaml';
+import { z } from 'zod';
+import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
+import { Tool } from '../../registry/tool-registry';
+import { type TaskResult } from '@squad/core';
 
-export class FileProcessorAgent extends JobAgent {
-  private config: FileProcessorConfig;
+const FileProcessorInputSchema = z.object({
+  content: z.string(),
+  type: z.string(),
+  options: z.record(z.unknown()).optional()
+});
 
-  constructor(config: FileProcessorConfig) {
-    super();
-    this.config = FileProcessorConfigSchema.parse(config);
+const FileProcessorConfigSchema = z.object({
+  supportedTypes: z.array(z.string()).default(['json', 'yaml', 'csv', 'text']),
+  maxFileSize: z.number().default(1024 * 1024), // 1MB
+  outputFormat: z.enum(['json', 'yaml', 'text']).default('json')
+});
+
+export class FileProcessorTool implements Tool {
+  name = 'file-processor';
+  description = 'Process files of various formats';
+  category = 'data-processing';
+  capabilities = ['file-processing'];
+
+  private config: z.infer<typeof FileProcessorConfigSchema>;
+
+  constructor(config?: z.infer<typeof FileProcessorConfigSchema>) {
+    this.config = FileProcessorConfigSchema.parse(config ?? {});
   }
 
   async validateInput(input: unknown): Promise<boolean> {
-    try {
-      const validated = FileProcessorInputSchema.parse(input);
-      return this.config.supportedTypes.includes(validated.type);
-    } catch {
-      return false;
-    }
+    return FileProcessorInputSchema.safeParse(input).success;
   }
 
-  async processTask(task: Task): Promise<TaskResult> {
-    const input = FileProcessorInputSchema.parse(task.input);
+  async process(input: unknown) {
+    const parsed = FileProcessorInputSchema.safeParse(input);
+    if (!parsed.success) {
+      throw new Error('Invalid input');
+    }
+    
+    const { content, type, options } = parsed.data;
     
     try {
-      // Download file
-      const content = await this.downloadFile(input.fileUrl);
-      
-      // Check file size
-      const size = Buffer.from(content).length;
-      if (size > this.config.maxFileSize) {
-        throw new Error(`File size ${size} exceeds maximum ${this.config.maxFileSize}`);
+      if (!this.config.supportedTypes.includes(type)) {
+        throw new Error(`Unsupported file type: ${type}`);
       }
-      
-      // Process based on type
-      const processed = await this.processContent(content, input.type, input.options);
-      
-      // Format output
-      return this.formatOutput(processed);
-    } catch (error) {
-      throw new Error(`Processing failed: ${error.message}`);
-    }
-  }
 
-  private async downloadFile(url: string): Promise<string> {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to download file: ${response.statusText}`);
+      const processedContent = await this.processContent(content, type, options);
+      return this.formatOutput(processedContent);
+    } catch (err) {
+      const error = err as Error;
+      throw new Error(`File processing failed: ${error.message}`);
     }
-    return response.text();
   }
 
   private async processContent(
@@ -106,34 +102,19 @@ export class FileProcessorAgent extends JobAgent {
     };
   }
 
-  private formatOutput(data: unknown): TaskResult {
+  private formatOutput(data: unknown): unknown {
     switch (this.config.outputFormat) {
       case 'json':
-        return {
-          status: 'success',
-          data: JSON.stringify(data),
-          metadata: {
-            format: 'json'
-          }
-        };
+        return JSON.stringify(data);
       
       case 'yaml':
-        return {
-          status: 'success',
-          data: parseYaml.stringify(data),
-          metadata: {
-            format: 'yaml'
-          }
-        };
+        return stringifyYaml(data);
       
       case 'text':
-        return {
-          status: 'success',
-          data: String(data),
-          metadata: {
-            format: 'text'
-          }
-        };
+        return String(data);
+      
+      default:
+        return data;
     }
   }
 }

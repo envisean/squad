@@ -1,0 +1,11 @@
+{
+  "imports": {
+    "@squad/agents": "../../node_modules/@squad/agents/dist/index.js",
+    "@langchain/community/": "https://esm.sh/@langchain/community@0.3.26/",
+    "@langchain/openai": "https://esm.sh/@langchain/openai@0.3.0",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.0"
+  },
+  "tasks": {
+    "deploy": "supabase functions deploy sales-prospecting"
+  }
+}

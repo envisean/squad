@@ -1,4 +1,4 @@
-import { BaseAgent } from '../core/base-agent';
+import { BaseAgent, type AgentTask, type TaskResult } from '@squad/core';
 import { BaseLearningSystem } from '@squad/core/learning';
 import { GmailLoader } from 'langchain/document_loaders/web/gmail';
 import { OpenAI } from 'langchain/llms/openai';

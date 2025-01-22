@@ -6,16 +6,27 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsup",
+    "build": "tsup --config tsup.config.ts",
     "dev": "tsup --watch",
     "lint": "eslint src/",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
-    "@langchain/community": "^0.3.26",
     "@squad/core": "workspace:*",
-    "langchain": "^0.3.12",
+    "@langchain/community": "^0.3.26",
+    "@langchain/openai": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "langchain": "^0.3.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "commander": "^11.1.0",
     "yaml": "^2.3.4",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "cli-progress": "^3.12.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.5",
+    "@types/cli-progress": "^3.11.5"
   }
 }

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Document } from "@langchain/core/documents";
 
 export const MemoryEntrySchema = z.object({
   id: z.string(),
@@ -71,4 +72,10 @@ export interface MemoryConfig {
     maxTokens: number;
     triggerLength: number; // number of messages before summarizing
   };
+}
+
+export interface MemoryManager {
+  store(documents: Document[]): Promise<void>;
+  search(query: string, limit?: number): Promise<Document[]>;
+  clear(): Promise<void>;
 }

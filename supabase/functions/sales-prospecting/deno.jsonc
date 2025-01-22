@@ -1,0 +1,17 @@
+{
+  "imports": {
+    "@langchain/core/messages": "npm:@langchain/core@0.3.30/messages",
+    "@langchain/core/vectorstores": "npm:@langchain/core@0.3.30/vectorstores",
+    "@langchain/core/documents": "npm:@langchain/core@0.3.30/documents",
+    "@langchain/community/vectorstores/supabase": "npm:@langchain/community@0.3.26/vectorstores/supabase",
+    "@langchain/openai": "npm:@langchain/openai@0.3.17"
+  },
+  "tasks": {
+    "deploy": "supabase functions deploy sales-prospecting"
+  },
+  "compilerOptions": {
+    "lib": ["deno.window"],
+    "allowJs": true,
+    "strict": true
+  }
+} 

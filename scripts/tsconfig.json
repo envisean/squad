@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "outDir": "./dist",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@squad/*": ["../packages/*/src"]
+    }
+  },
+  "include": ["./**/*.ts"],
+  "references": [
+    { "path": "../packages/agents" },
+    { "path": "../packages/core" }
+  ]
+} 

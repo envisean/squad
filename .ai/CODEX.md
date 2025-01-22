@@ -436,3 +436,54 @@ monitor.log({
    - Resource usage optimization
    - Cost management
    - Performance tuning
+
+# Squad AI Development Guidelines
+
+## Edge Function Dependencies
+
+### Critical Lessons for Deno/Edge Functions
+
+1. **Version Management in Edge Functions**
+   - When using dependencies in Supabase Edge Functions (Deno), prefer using `npm:` imports over `esm.sh`
+   - Example:
+     ```typescript
+     // Prefer this:
+     import { OpenAIEmbeddings } from "npm:@langchain/openai@0.3.17";
+     
+     // Over this:
+     import { OpenAIEmbeddings } from "https://esm.sh/@langchain/openai@0.3.17";
+     ```
+
+2. **Dependency Resolution**
+   - Each edge function should have its own `deno.jsonc` file in its directory
+   - Supabase's documentation about sharing a single deno.json in the functions directory may not work reliably
+   - Always explicitly version dependencies to avoid runtime issues
+
+3. **Troubleshooting Dependencies**
+   - If encountering missing exports or version conflicts:
+     1. Check if the dependency needs to be pinned to a specific version
+     2. Consider switching from `esm.sh` to `npm:` imports
+     3. Verify the dependency works in the Deno environment
+
+[Source: LangChain Issue #1418](https://github.com/langchain-ai/langsmith-sdk/issues/1418)
+
+## Best Practices
+
+1. **Local Development**
+   - Test edge functions locally before deployment
+   - Use `supabase functions serve` to verify dependency resolution
+   - Monitor Supabase logs for dependency-related errors
+
+2. **Dependency Management**
+   - Keep dependencies consistent between local and edge environments
+   - Document known working versions in package.json
+   - Consider using a deps.ts file for Deno dependencies
+
+3. **Monitoring and Debugging**
+   - Set up proper error logging
+   - Monitor edge function boot times
+   - Track dependency-related failures
+
+## Project Structure
+
+...

@@ -1,5 +1,4 @@
-import { Task, TaskResult } from '@squad/core';
-import { BaseAgent } from '../base-agent';
+import { BaseAgent, type AgentTask, type TaskResult } from '@squad/core';
 
 export class TaskAgent extends BaseAgent {
   async executeTask(task: Task): Promise<TaskResult> {
