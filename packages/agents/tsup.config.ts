@@ -2,27 +2,22 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: ['src/index.ts'],
-  format: ['cjs', 'esm'],
+  format: ['esm'],
   dts: {
     entry: './src/index.ts',
     compilerOptions: {
       moduleResolution: "node",
       composite: false,
-      incremental: false,
-      skipLibCheck: true,
-      paths: {
-        "@squad/*": ["../*/src"]
-      }
-    },
-    resolve: {
-      skipNodeModulesBundle: true
+      incremental: false
     }
   },
   splitting: true,
   sourcemap: true,
   clean: true,
   minify: true,
-  treeshake: true,
+  treeshake: {
+    moduleSideEffects: false,
+  },
   external: [
     '@langchain/community',
     '@langchain/openai',
@@ -32,6 +27,14 @@ export default defineConfig({
     'yaml',
     'cli-progress',
     'zod',
+    'langchain/text_splitter',
+    /^@langchain\/.*/,
+    /^node:.*/,
   ],
-  noExternal: ['@squad/*']
+  noExternal: ['@squad/core'],
+  // This tells esbuild to only include used exports
+  esbuildOptions(options) {
+    options.treeShaking = true;
+    options.ignoreAnnotations = false;
+  }
 }); 

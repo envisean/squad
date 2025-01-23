@@ -4,7 +4,14 @@
     "@langchain/core/vectorstores": "npm:@langchain/core@0.3.30/vectorstores",
     "@langchain/core/documents": "npm:@langchain/core@0.3.30/documents",
     "@langchain/community/vectorstores/supabase": "npm:@langchain/community@0.3.26/vectorstores/supabase",
-    "@langchain/openai": "npm:@langchain/openai@0.3.17"
+    "@langchain/community/document_loaders/web/firecrawl": "npm:@langchain/community@0.3.26/document_loaders/web/firecrawl",
+    "@langchain/openai/embeddings": "npm:@langchain/openai@0.3.17/embeddings",
+    "@langchain/openai": "npm:@langchain/openai@0.3.17",
+    "langchain/text_splitter": "npm:langchain@0.3.30/text_splitter",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2",
+    "zod": "npm:zod@3.22.4",
+    "cli-progress": "npm:cli-progress@3.11.0",
+    "yaml": "npm:yaml@2.3.4"
   },
   "tasks": {
     "deploy": "supabase functions deploy sales-prospecting"

@@ -1,8 +1,8 @@
-import { serve } from "http/server.ts";
-import { createClient } from "@supabase/supabase-js";
-import { SalesProspectingAgent } from "./dist/index.js";
-import { SupabaseVectorStore } from "npm:@langchain/community@0.3.26/vectorstores/supabase";
-import { OpenAIEmbeddings } from "npm:@langchain/openai@0.3.17/embeddings";
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { createClient } from "https://esm.sh/v135/@supabase/supabase-js@2";
+import { SalesProspectingAgent } from "./dist/index.mjs";
+import { SupabaseVectorStore } from "https://esm.sh/v135/@langchain/community@0.3.26/vectorstores/supabase";
+import { OpenAIEmbeddings } from "https://esm.sh/v135/@langchain/openai@0.3.17";
 
 interface RequestBody {
   query: string;
