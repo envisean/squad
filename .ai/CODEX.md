@@ -615,6 +615,7 @@ packages/agents/src/
    - Proper error handling
 
 2. **Edge Function Optimization**
+
    - Keep bundles small
    - Minimize cold starts
    - Use appropriate imports:
@@ -722,3 +723,42 @@ sed -i "" "s/Date: .*/Date: ${CURRENT_DATE}/" "$SESSION_FILE"
 
 echo "Created session file: $SESSION_FILE"
 ```
+
+## Cardinal Rules for Code Generation
+
+### 1. Preserve Architectural Integrity
+
+- **NEVER** suggest changes that could destabilize the existing monorepo architecture
+- **ALWAYS** respect existing patterns and conventions
+- **MAINTAIN** consistency with established import patterns (@squad/\*)
+- **PRESERVE** build and deployment configurations that are known to work
+
+### 2. Scope of Changes
+
+- **ISOLATE** changes to the specific task or file at hand
+- **AVOID** suggesting "while we're at it" changes to working systems
+- **FOCUS** on minimal, targeted solutions for specific problems
+- If broader changes are truly needed, propose them separately with full impact analysis
+
+### 3. Dependencies and Configuration
+
+- **RESPECT** existing dependency structures in the monorepo
+- **MAINTAIN** compatibility with current build tools (tsup, turbo)
+- **PRESERVE** working TypeScript configurations
+- **AVOID** changes to shared configuration files unless absolutely necessary
+
+### 4. Problem-Solving Approach
+
+1. First, try to solve within existing patterns
+2. If that fails, look for minimal adjustments to the specific file
+3. If architectural changes are truly needed:
+   - Document the full impact
+   - Propose as a separate refactoring task
+   - Get explicit approval before proceeding
+
+### 5. Testing and Scripts
+
+- Keep test files consistent with main codebase patterns
+- Prefer fixing script-specific issues over changing shared configs
+- Maintain separation between test utilities and production code
+- Document any special handling needed for test scenarios

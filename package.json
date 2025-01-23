@@ -23,7 +23,10 @@
     "clean": "turbo run clean",
     "clean:edge": "rm -rf supabase/functions/*/dist",
     "prepare": "husky install",
-    "create:session": "chmod +x scripts/create-session.sh && ./scripts/create-session.sh"
+    "create:session": "chmod +x scripts/create-session.sh && ./scripts/create-session.sh",
+    "test:summarization": "NODE_ENV=development tsx --require tsconfig-paths/register scripts/test-document-summarization.ts",
+    "test:agent": "NODE_ENV=development tsx scripts/test-agent.ts",
+    "test:orchestrator": "NODE_ENV=development tsx scripts/test-agent.ts"
   },
   "workspaces": [
     "apps/*",
@@ -46,6 +49,7 @@
     "lint-staged": "^15.4.2",
     "node-fetch": "^3.3.2",
     "prettier": "^3.2.5",
+    "tsconfig-paths": "^4.2.0",
     "tsup": "^8.0.1",
     "tsx": "^4.19.2",
     "turbo": "^1.11.2",
