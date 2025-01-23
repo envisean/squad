@@ -1,4 +1,4 @@
-import { WebsiteIngestionTool } from '@squad/agents';
+import { WebsiteIngestionTool } from '@squad/agents/tools/website-ingestion';
 import { Command } from 'commander';
 import { loadEnv } from './utils/env';
 

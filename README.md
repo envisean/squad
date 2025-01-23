@@ -65,10 +65,10 @@ graph TB
         Realtime[Realtime Updates]
     end
 
-    subgraph External["External Services"]
-        LLM[LLM Providers]
-        Tools[External Tools]
-        APIs[Third-party APIs]
+    subgraph AI["AI Development"]
+        Codex[.ai/CODEX.md]
+        Patterns[.ai/context/*]
+        Sessions[.ai/sessions/*]
     end
 
     UI --> AgentMgr
@@ -84,9 +84,8 @@ graph TB
     AgentMgr --> Edge
     TaskOrch --> Edge
     
-    Edge --> LLM
-    Edge --> Tools
-    Edge --> APIs
+    Edge --> AI
+    AI --> Edge
 
     DB --> Realtime --> UI
 ```
@@ -496,7 +495,34 @@ Ensure your IDE supports:
 ## Documentation
 
 The following documentation is available:
-- [Task Processing System](docs/TASK_PROCESSING.md) - Learn about our task queue system, agents, and scaling considerations
+
+### Core Documentation
+- [System Architecture](docs/ARCHITECTURE.md) - Detailed system design and components
+- [Installation Guide](docs/INSTALLATION.md) - Setup and configuration instructions
+- [Troubleshooting Guide](docs/TROUBLESHOOTING.md) - Common issues and solutions
+- [Contributing Guidelines](docs/CONTRIBUTING.md) - How to contribute to the project
+
+### AI Development
+- [AI Development Codex](.ai/CODEX.md) - AI development guidelines and code generation process
+- [Agent Development](.ai/context/agent-patterns.md) - Agent patterns and best practices
+- [Memory Systems](.ai/context/memory-systems.md) - Memory management and storage patterns
+- [Edge Functions](.ai/context/edge-deployment.md) - Edge function deployment and optimization
+- [Testing Strategies](.ai/context/testing-patterns.md) - Testing patterns and quality assurance
+
+### Development Workflow
+```mermaid
+graph TD
+    A[New Feature/Task] --> B[Create Session]
+    B --> C[.ai/sessions/YYYY-MM-DD_task_name.md]
+    C --> D{Development Process}
+    D --> E[Define Specifications]
+    D --> F[Document Decisions]
+    D --> G[Implement & Test]
+    E --> H[Review & Iterate]
+    F --> H
+    G --> H
+    H --> I[Integration]
+```
 
 ## Key Features
 

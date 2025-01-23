@@ -1,5 +1,55 @@
 # Squad AI Platform Codex
 
+## AI Code Generation Process
+
+### Overview
+When generating code with AI assistance, follow this structured process to ensure consistent, high-quality results:
+
+1. **Define Specifications**
+   - Create a clear problem statement
+   - Document requirements and constraints
+   - Identify integration points with existing systems
+   - List expected inputs and outputs
+
+2. **Document Session**
+   - Create a new session file: `.ai/sessions/YYYY-MM-DD_task_name.md`
+   - Include:
+     - Original requirements
+     - Key decisions and rationale
+     - Code snippets and iterations
+     - Test results and feedback
+
+3. **Iterative Development**
+   ```typescript
+   interface AICodeGenProcess {
+     steps: {
+       1: 'Break down into small, testable milestones';
+       2: 'Generate initial code with AI assistance';
+       3: 'Review and test with human oversight';
+       4: 'Document feedback and iterations';
+       5: 'Evaluate impact and performance';
+     };
+     bestPractices: {
+       askClarifyingQuestions: true;    // Ensure full understanding
+       provideContext: true;            // Share relevant existing code
+       validateAssumptions: true;       // Confirm approach
+       documentDecisions: true;         // Record key choices
+     };
+   }
+   ```
+
+4. **Quality Checks**
+   - Verify adherence to project patterns
+   - Ensure proper error handling
+   - Confirm test coverage
+   - Review performance implications
+
+5. **Integration**
+   - Document integration points
+   - Update relevant tests
+   - Add monitoring if needed
+   - Update documentation
+
 ## Architecture Overview
 
 ### Core Concepts
@@ -441,154 +491,124 @@ As the project grows, we might want to consider these approaches for edge functi
 
 # Squad AI Development Guidelines
 
-## Edge Function Dependencies
+## Agent Organization & Development
 
-### Critical Lessons for Deno/Edge Functions
-
-1. **Version Management in Edge Functions**
-   - When using dependencies in Supabase Edge Functions (Deno), prefer using `npm:` imports over `esm.sh`
-   - Example:
-     ```typescript
-     // Prefer this:
-     import { OpenAIEmbeddings } from "npm:@langchain/openai@0.3.17";
-     
-     // Over this:
-     import { OpenAIEmbeddings } from "https://esm.sh/@langchain/openai@0.3.17";
-     ```
-
-2. **Dependency Resolution**
-   - Each edge function should have its own `deno.jsonc` file in its directory
-   - Supabase's documentation about sharing a single deno.json in the functions directory may not work reliably
-   - Always explicitly version dependencies to avoid runtime issues
-
-3. **Troubleshooting Dependencies**
-   - If encountering missing exports or version conflicts:
-     1. Check if the dependency needs to be pinned to a specific version
-     2. Consider switching from `esm.sh` to `npm:` imports
-     3. Verify the dependency works in the Deno environment
-
-[Source: LangChain Issue #1418](https://github.com/langchain-ai/langsmith-sdk/issues/1418)
-
-## Best Practices
-
-1. **Local Development**
-   - Test edge functions locally before deployment
-   - Use `supabase functions serve` to verify dependency resolution
-   - Monitor Supabase logs for dependency-related errors
-
-2. **Dependency Management**
-   - Keep dependencies consistent between local and edge environments
-   - Document known working versions in package.json
-   - Consider using a deps.ts file for Deno dependencies
-
-3. **Monitoring and Debugging**
-   - Set up proper error logging
-   - Monitor edge function boot times
-   - Track dependency-related failures
-
-## Project Structure
-
-...
-
-## Building and Deploying Edge Functions
-
-### Agent-Specific Edge Functions
-
-Each agent that needs to run in an edge function requires two steps:
-
-1. **Building**
-```bash
-pnpm build:agent sales-prospecting
+### Directory Structure
+```
+packages/agents/
+├── src/
+│   ├── orchestrators/     # High-level orchestrator agents
+│   │   ├── manager/       # Strategic management agents
+│   │   └── workflow/      # Workflow orchestration agents
+│   │
+│   ├── domain/           # Domain-specific agents
+│   │   ├── search/       # Search-related agents
+│   │   ├── email/        # Email processing agents
+│   │   └── chat/         # Chat/conversation agents
+│   │
+│   └── agents/          # Legacy directory (to be migrated)
 ```
 
-This will:
-- Create an optimized build for just the sales-prospecting agent
-- Bundle only required dependencies
-- Copy the bundle to supabase/functions/sales-prospecting/dist/
+### Agent Types
 
-2. **Deploying**
+1. **Orchestrator Agents**
+   - Strategic, high-level agents that coordinate other agents
+   - Not deployed as edge functions
+   - Handle complex workflows and decision-making
+   - Example: `pnpm build:orchestrator task-manager`
+
+2. **Domain Agents**
+   - Specialized agents for specific business domains
+   - Typically deployed as edge functions
+   - Single responsibility principle
+   - Example: `pnpm build:agent search-agent`
+
+3. **Legacy Agents**
+   - Existing agents pending migration
+   - Maintained for backwards compatibility
+   - Example: `pnpm build:legacy sales-prospecting`
+
+### Build & Deploy Commands
+
 ```bash
-pnpm deploy:agent sales-prospecting
-```
+# Build Commands
+pnpm build:agent <name>          # Build domain agent
+pnpm build:orchestrator <name>   # Build orchestrator agent
+pnpm build:legacy <name>         # Build legacy agent
+pnpm build:agent --path <path>   # Build from specific path
 
-This will:
-- Deploy the edge function to Supabase
-- Use the agent-specific configuration in deno.jsonc
-- Handle environment variables and secrets
+# Deploy Commands
+pnpm deploy:agent <name>         # Deploy domain agent
+pnpm deploy:orchestrator <name>  # Deploy orchestrator (no-op)
+pnpm deploy:legacy <name>        # Deploy legacy agent
+```
 
 ### Development Workflow
 
-1. Make changes to agent code in `packages/agents/src/agents/[agent-name]`
-2. Test locally using `supabase functions serve [agent-name]`
-3. Build the agent using `pnpm build:agent [agent-name]`
-4. Deploy using `pnpm deploy:agent [agent-name]`
+1. **Local Development**
+   ```typescript
+   // Create test script
+   import { YourAgent } from '@squad/agents/domain/your-domain/your-agent';
+   
+   const agent = new YourAgent({
+     // configuration
+   });
+   
+   const result = await agent.processTask({
+     type: 'task-type',
+     id: 'test-1',
+     input: {
+       // task input
+     }
+   });
+   ```
 
-### Troubleshooting Deployments
+2. **Testing**
+   ```bash
+   # Run test script
+   pnpm tsx scripts/test-your-agent.ts
+   
+   # Run with specific input
+   pnpm tsx scripts/test-your-agent.ts "your test input"
+   ```
 
-Common issues and solutions:
-
-1. **Build Failures**
-   - Check the agent's dependencies
-   - Verify external/noExternal settings in tsup config
-   - Use `--verbose` flag: `pnpm build:agent [agent-name] --verbose`
-
-2. **Deploy Failures**
-   - Ensure Supabase CLI is logged in
-   - Check function size limits
-   - Verify environment variables are set
-   - Look for version conflicts in deno.jsonc
-
-3. **Runtime Errors**
-   - Check Supabase function logs
-   - Verify all imports are Deno-compatible
-   - Test locally before deployment
-
-## Scripts
-
-### Agent Build and Deploy Scripts
-
-The project includes several scripts for managing agent builds and deployments:
-
-1. **Build Scripts**
-```bash
-# Build a specific agent
-pnpm build:agent sales-prospecting
-
-# Clean edge function builds
-pnpm clean:edge
-```
-
-2. **Deploy Scripts**
-```bash
-# Deploy a specific agent
-pnpm deploy:agent sales-prospecting
-```
-
-### How the Build Process Works
-
-1. `build:agent [name]`:
-   - Creates an agent-specific tsup config
-   - Bundles only the required agent code and dependencies
-   - Optimizes the bundle for edge deployment
-   - Copies the bundle to the appropriate Supabase function directory
-
-2. `deploy:agent [name]`:
-   - Validates the agent exists
-   - Uses Supabase CLI to deploy the function
-   - Handles environment variables and configuration
-
-3. `clean:edge`:
-   - Removes all edge function builds
-   - Useful when you need a fresh start
+3. **Deployment**
+   ```bash
+   # Build and deploy
+   pnpm build:agent your-agent
+   pnpm deploy:agent your-agent
+   ```
 
 ### Best Practices
 
-1. **Build Process**
-   - Always build before deploying
-   - Test locally using `supabase functions serve`
-   - Check bundle sizes with `--verbose` flag
+1. **Agent Design**
+   - One agent, one responsibility
+   - Clear domain boundaries
+   - Explicit dependencies
+   - Proper error handling
 
-2. **Deployment**
-   - Verify environment variables are set
-   - Test the function locally first
-   - Monitor deployment logs
+2. **Edge Function Optimization**
+   - Keep bundles small
+   - Minimize cold starts
+   - Use appropriate imports:
+     ```typescript
+     // Standard packages
+     import { z } from "npm:zod@3.22.4";
+     
+     // LangChain ecosystem
+     import { OpenAIEmbeddings } from "https://esm.sh/v135/@langchain/openai@0.3.17";
+     ```
+
+  Why? LangChain's ecosystem is rapidly evolving and sometimes requires specific version pinning for ESM compatibility in Deno.
+
+3. **Testing & Validation**
+   - Create comprehensive test scripts
+   - Test edge cases
+   - Validate inputs
+   - Monitor performance
+
+4. **Documentation**
+   - Clear agent description
+   - Input/output examples
+   - Configuration options
+   - Usage patterns

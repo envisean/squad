@@ -1,32 +1,82 @@
 const { execSync } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 
-// Add validation for agent existence
-function validateAgent(agentName) {
-  const agentPath = path.join(__dirname, `../packages/agents/src/agents/${agentName}`);
-  if (!require('fs').existsSync(agentPath)) {
-    console.error(`Agent "${agentName}" not found in packages/agents/src/agents/`);
-    process.exit(1);
+// Agent type definitions
+const AGENT_TYPES = {
+  ORCHESTRATOR: 'orchestrator',
+  DOMAIN: 'domain',
+  LEGACY: 'legacy'
+};
+
+// Helper to find agent directory
+function findAgentDirectory(agentName, type) {
+  const basePath = path.join(__dirname, '../packages/agents/src');
+  
+  switch(type) {
+    case AGENT_TYPES.ORCHESTRATOR:
+      return path.join(basePath, 'orchestrators', agentName);
+    
+    case AGENT_TYPES.DOMAIN:
+      // Search through domain directories
+      const domainDirs = fs.readdirSync(path.join(basePath, 'domain'));
+      for (const dir of domainDirs) {
+        const agentPath = path.join(basePath, 'domain', dir, agentName);
+        if (fs.existsSync(agentPath)) {
+          return agentPath;
+        }
+      }
+      return null;
+    
+    case AGENT_TYPES.LEGACY:
+      return path.join(basePath, 'agents', agentName);
+    
+    default:
+      return null;
   }
 }
 
-function buildAgent(agentName) {
-  validateAgent(agentName);
-  console.log(`Building agent: ${agentName}`);
+// Validate agent exists
+function validateAgent(agentName, type, customPath = null) {
+  if (customPath) {
+    if (!fs.existsSync(customPath)) {
+      console.error(`Agent not found at path: ${customPath}`);
+      process.exit(1);
+    }
+    return customPath;
+  }
+
+  const agentPath = findAgentDirectory(agentName, type);
+  if (!agentPath || !fs.existsSync(agentPath)) {
+    console.error(`Agent "${agentName}" not found in ${type} directory`);
+    process.exit(1);
+  }
+  return agentPath;
+}
+
+function buildAgent(agentName, type = AGENT_TYPES.DOMAIN, customPath = null) {
+  const agentPath = validateAgent(agentName, type, customPath);
+  console.log(`Building ${type} agent: ${agentName}`);
+  
+  // Determine entry point relative to packages/agents/src
+  const relativePath = path.relative(
+    path.join(__dirname, '../packages/agents/src'),
+    agentPath
+  );
   
   // Create agent-specific tsup config
   const tsupConfig = {
-    entry: [`src/agents/${agentName}/index.ts`],
+    entry: [`src/${relativePath}/index.ts`],
     format: ['esm'],
     dts: {
-      entry: `src/agents/${agentName}/index.ts`,
+      entry: `src/${relativePath}/index.ts`,
       resolve: true,
       compilerOptions: {
         moduleResolution: "node",
         composite: false,
         incremental: false,
         include: [
-          `src/agents/${agentName}/**/*`,
+          `src/${relativePath}/**/*`,
           "src/types/**/*"
         ]
       }
@@ -45,7 +95,6 @@ function buildAgent(agentName) {
       'zod'
     ],
     noExternal: ['@squad/core'],
-    // This tells esbuild to only include used exports
     esbuildOptions(options) {
       options.treeShaking = true;
       options.ignoreAnnotations = false;
@@ -54,7 +103,7 @@ function buildAgent(agentName) {
 
   // Write temporary config
   const configPath = path.join(__dirname, `../packages/agents/tsup.${agentName}.config.js`);
-  require('fs').writeFileSync(
+  fs.writeFileSync(
     configPath,
     `module.exports = ${JSON.stringify(tsupConfig, null, 2)}`
   );
@@ -66,21 +115,39 @@ function buildAgent(agentName) {
       stdio: 'inherit'
     });
 
-    // Copy to edge function directory
-    execSync(`mkdir -p supabase/functions/${agentName}/dist && cp -r packages/agents/dist/* supabase/functions/${agentName}/dist/`, {
-      cwd: path.join(__dirname, '..'),
-      stdio: 'inherit'
-    });
+    // Copy to edge function directory if needed
+    if (type !== AGENT_TYPES.ORCHESTRATOR) {
+      execSync(`mkdir -p supabase/functions/${agentName}/dist && cp -r packages/agents/dist/* supabase/functions/${agentName}/dist/`, {
+        cwd: path.join(__dirname, '..'),
+        stdio: 'inherit'
+      });
+    }
   } finally {
     // Cleanup temp config
-    require('fs').unlinkSync(configPath);
+    fs.unlinkSync(configPath);
   }
 }
 
-const agentName = process.argv[2];
+// Parse command line arguments
+const args = process.argv.slice(2);
+let type = AGENT_TYPES.DOMAIN; // Default to domain agent
+let agentName = args[0];
+let customPath = null;
+
+if (args[0] === '--orchestrator' || args[0] === '-o') {
+  type = AGENT_TYPES.ORCHESTRATOR;
+  agentName = args[1];
+} else if (args[0] === '--path' || args[0] === '-p') {
+  customPath = path.resolve(args[1]);
+  agentName = path.basename(path.dirname(customPath));
+} else if (args[0] === '--legacy' || args[0] === '-l') {
+  type = AGENT_TYPES.LEGACY;
+  agentName = args[1];
+}
+
 if (!agentName) {
   console.error('Please specify an agent name');
   process.exit(1);
 }
 
-buildAgent(agentName); 
+buildAgent(agentName, type, customPath); 

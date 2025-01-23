@@ -4,7 +4,11 @@
   "scripts": {
     "build": "turbo run build",
     "build:agent": "node scripts/build-agent.js",
+    "build:orchestrator": "node scripts/build-agent.js --orchestrator",
+    "build:legacy": "node scripts/build-agent.js --legacy",
     "deploy:agent": "node scripts/deploy-agent.js",
+    "deploy:orchestrator": "node scripts/deploy-agent.js --orchestrator",
+    "deploy:legacy": "node scripts/deploy-agent.js --legacy",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",

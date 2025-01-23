@@ -1,9 +1,9 @@
-import { SalesProspectingAgent } from '@squad/agents';
+import { SalesProspectingAgent } from '@squad/agents/agents/sales-prospecting';
+import { ProspectSchema } from '@squad/agents/agents/sales-prospecting/types';
 import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { createClient } from "@supabase/supabase-js";
 import { loadEnv } from './utils/env';
-import { ProspectSchema } from '@squad/agents';
 import type { z } from 'zod';
 
 // Load environment variables
