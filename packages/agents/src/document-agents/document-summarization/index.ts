@@ -3,6 +3,7 @@ import { PromptTemplate } from '@langchain/core/prompts'
 import { RunnableSequence } from '@langchain/core/runnables'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { StructuredOutputParser } from 'langchain/output_parsers'
+import { z } from 'zod'
 
 import {
   DocumentSummarizationInput,
@@ -170,33 +171,47 @@ export class DocumentSummarizationAgent {
   }
 
   private async parseStructuredSummary(summary: string) {
-    // Use LLM to parse the structure
-    const structureParser = PromptTemplate.fromTemplate(`
-      Parse the following summary into a structured format with an overview and sections.
-      Return the result as a JSON object with this structure:
-      {
-        "overview": "high level summary",
-        "sections": [
-          {
-            "title": "section title",
-            "content": "section content",
-            "subsections": [
-              {
-                "title": "subsection title",
-                "content": "subsection content"
-              }
-            ]
-          }
-        ]
-      }
+    const parser = StructuredOutputParser.fromZodSchema(
+      z.object({
+        overview: z.string().describe('A high-level summary of the entire document'),
+        sections: z.array(
+          z.object({
+            title: z.string().describe('The section title'),
+            content: z.string().describe('The section content'),
+            subsections: z
+              .array(
+                z.object({
+                  title: z.string().describe('The subsection title'),
+                  content: z.string().describe('The subsection content'),
+                })
+              )
+              .optional()
+              .describe('Optional array of subsections'),
+          })
+        ),
+      })
+    )
 
-      Summary to parse:
-      {summary}
-    `)
+    const formatInstructions = parser.getFormatInstructions()
 
-    const chain = RunnableSequence.from([structureParser, this.model, new StringOutputParser()])
+    const prompt = new PromptTemplate({
+      template: `Parse the following summary into a structured format.
+{format_instructions}
 
-    const structuredResult = await chain.invoke({ summary })
-    return JSON.parse(structuredResult)
+Summary to parse:
+{summary}`,
+      inputVariables: ['summary'],
+      partialVariables: { format_instructions: formatInstructions },
+    })
+
+    const chain = RunnableSequence.from([prompt, this.model, new StringOutputParser()])
+
+    try {
+      const response = await chain.invoke({ summary })
+      return parser.parse(response)
+    } catch (error) {
+      console.error('Failed to parse structured response:', error)
+      throw error
+    }
   }
 }

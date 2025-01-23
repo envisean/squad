@@ -1,11 +1,31 @@
 import path from 'path'
 import fs from 'fs'
 import { loadEnv } from '../packages/core/src/utils/env'
+import cliProgress from 'cli-progress'
+import chalk from 'chalk'
 
 // Load environment variables
 loadEnv()
 
 const BASE_PATH = path.join(__dirname, '../packages/agents/src')
+
+// Create progress bar
+const progressBar = new cliProgress.SingleBar(
+  {
+    format: chalk.cyan('{bar}') + ' | {percentage}% | {state} | Elapsed: {duration_formatted}',
+    barCompleteChar: '\u2588',
+    barIncompleteChar: '\u2591',
+    hideCursor: true,
+  },
+  cliProgress.Presets.shades_classic
+)
+
+// Helper to format duration
+function formatDuration(ms: number): string {
+  const seconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(seconds / 60)
+  return minutes > 0 ? `${minutes}m ${seconds % 60}s` : `${seconds}s`
+}
 
 // Helper to find agent directory (reusing pattern from build-agent.js)
 function findAgentDirectory(agentPath: string) {
@@ -80,19 +100,40 @@ async function testAgent(agentPath: string, isOrchestrator = false) {
 
   const agentName = path.basename(agentPath)
   const agentType = path.basename(path.dirname(fullPath))
-  console.log(`Testing ${agentType} agent: ${agentName}`)
+  console.log(`Testing ${agentType} agent: ${agentName}\n`)
 
   try {
+    // Start progress bar
+    progressBar.start(100, 0, { state: 'Initializing test...', duration_formatted: '0s' })
+    const startTime = Date.now()
+
     // Import and run the agent's test file
     const testModule = await import(path.join(fullPath, '__tests__/local.ts'))
+
+    // Update progress periodically
+    const progressInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime
+      progressBar.update(50, {
+        state: 'Running tests...',
+        duration_formatted: formatDuration(elapsed),
+      })
+    }, 100)
+
     await testModule.default()
+
+    // Clean up and show success
+    clearInterval(progressInterval)
+    const totalTime = Date.now() - startTime
+    progressBar.update(100, {
+      state: 'Tests completed',
+      duration_formatted: formatDuration(totalTime),
+    })
+    progressBar.stop()
+    console.log(chalk.green('\n✓ Tests completed successfully\n'))
   } catch (error: unknown) {
-    if (error instanceof Error && error.message.includes('MODULE_NOT_FOUND')) {
-      console.error(`No test file found at ${fullPath}/__tests__/local.ts`)
-      console.error('Please create a test file with a default export function')
-      process.exit(1)
-    }
-    console.error('Test failed:', error instanceof Error ? error.message : error)
+    // Clean up and show error
+    progressBar.stop()
+    console.error(chalk.red('\n✗ Test failed:'), error instanceof Error ? error.message : error)
     process.exit(1)
   }
 }

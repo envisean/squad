@@ -414,6 +414,70 @@ monitor.log({
 })
 ```
 
+### 5. Testing Agents
+
+```typescript
+// 1. Directory Structure
+interface TestStructure {
+  location: '{{agent-dir}}/__tests__/local.ts'
+  pattern: {
+    imports: ['Agent class from parent directory']
+    exports: ['default async function for test runner']
+  }
+}
+
+// 2. Test Runner Usage
+interface TestCommands {
+  basic: 'pnpm test:agent agent-name'
+  withDomain: 'pnpm test:agent domain-agents/agent-name'
+  orchestrator: 'pnpm test:orchestrator orchestrator-name'
+}
+
+// 3. Test File Pattern
+interface TestFileStructure {
+  testData: 'Define test inputs/documents'
+  testCases: {
+    setup: 'Initialize agent with configuration'
+    cases: 'Multiple test cases with different options'
+    validation: 'Verify outputs match expected schema'
+  }
+}
+
+// Example Test File
+async function runLocalTest() {
+  // Initialize agent
+  const agent = new YourAgent(config)
+
+  // Run multiple test cases
+  console.log('\nTesting Case 1:')
+  const result1 = await agent.process({
+    input: testInput1,
+    options: options1,
+  })
+
+  console.log('\nTesting Case 2:')
+  const result2 = await agent.process({
+    input: testInput2,
+    options: options2,
+  })
+}
+```
+
+The test runner provides:
+
+1. **Progress Tracking**: Visual progress bar with elapsed time
+2. **Agent Discovery**: Automatic location of agent test files
+3. **Error Handling**: Proper error display and exit codes
+4. **Domain Organization**: Support for domain-specific agent directories
+
+Key Testing Principles:
+
+1. Each agent should have its own `__tests__/local.ts` file
+2. Test files should cover multiple use cases/configurations
+3. Use realistic test data that represents actual use cases
+4. Validate both successful and error scenarios
+5. Keep test output clear and structured
+
 ## Best Practices
 
 1. **Agent Design**

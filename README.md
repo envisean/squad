@@ -83,7 +83,7 @@ graph TB
 
     AgentMgr --> Edge
     TaskOrch --> Edge
-    
+
     Edge --> AI
     AI --> Edge
 
@@ -152,53 +152,56 @@ flowchart LR
 Squad leverages Supabase as its primary infrastructure platform, providing:
 
 1. **Vector Operations & AI Features**
+
 ```typescript
 interface SupabaseAICapabilities {
   vectorStore: {
-    storage: pgvector;        // Built-in pgvector support
+    storage: pgvector // Built-in pgvector support
     indexes: {
-      ivfflat: IVFIndex;     // For larger datasets
-      hnsw: HNSWIndex;       // For faster retrieval
-    };
-  };
+      ivfflat: IVFIndex // For larger datasets
+      hnsw: HNSWIndex // For faster retrieval
+    }
+  }
   integrations: {
-    langchain: LangChainVectorStore;
-    llamaindex: LlamaIndexVectorStore;
-    openai: OpenAIIntegration;
-    huggingface: HuggingFaceIntegration;
-  };
+    langchain: LangChainVectorStore
+    llamaindex: LlamaIndexVectorStore
+    openai: OpenAIIntegration
+    huggingface: HuggingFaceIntegration
+  }
 }
 ```
 
 2. **Runtime & Compute**
+
 ```typescript
 interface SupabaseCompute {
   edgeFunctions: {
     runtimes: {
-      deno: DenoRuntime;     // For Edge Functions
-      python: PythonRuntime;  // Via Python Client
-    };
+      deno: DenoRuntime // For Edge Functions
+      python: PythonRuntime // Via Python Client
+    }
     features: {
-      websockets: boolean;    // Real-time capabilities
-      backgroundTasks: boolean;
-      streaming: boolean;
-    };
-  };
+      websockets: boolean // Real-time capabilities
+      backgroundTasks: boolean
+      streaming: boolean
+    }
+  }
 }
 ```
 
 3. **Storage & Database**
+
 ```typescript
 interface SupabaseStorage {
   database: {
-    postgres: PostgreSQL;
-    realtime: RealtimeSubscriptions;
-    rls: RowLevelSecurity;
-  };
+    postgres: PostgreSQL
+    realtime: RealtimeSubscriptions
+    rls: RowLevelSecurity
+  }
   storage: {
-    buckets: StorageBucket[];
-    cdn: CDNIntegration;
-  };
+    buckets: StorageBucket[]
+    cdn: CDNIntegration
+  }
 }
 ```
 
@@ -207,64 +210,126 @@ interface SupabaseStorage {
 The platform is built around these key components:
 
 1. **Agent Framework**
+
 ```typescript
 interface AgentDefinition {
-  type: string;
-  capabilities: AgentCapability[];
-  tools: Tool[];
+  type: string
+  capabilities: AgentCapability[]
+  tools: Tool[]
   knowledgeBase?: {
-    documents?: Document[];
-    embeddings?: Embedding[];
-    vectorStore?: VectorStore;
-  };
+    documents?: Document[]
+    embeddings?: Embedding[]
+    vectorStore?: VectorStore
+  }
   prompts: {
-    system?: string;
-    task?: string;
-    error?: string;
-  };
+    system?: string
+    task?: string
+    error?: string
+  }
   constraints: {
-    maxTokens?: number;
-    temperature?: number;
-    costLimit?: number;
-    timeLimit?: number;
-  };
+    maxTokens?: number
+    temperature?: number
+    costLimit?: number
+    timeLimit?: number
+  }
 }
 ```
 
 2. **Task Management**
+
 ```typescript
 interface TaskDefinition {
-  type: string;
+  type: string
   requirements: {
-    capabilities: string[];
-    tools: string[];
-    priority?: 'low' | 'medium' | 'high';
-    deadline?: Date;
-  };
+    capabilities: string[]
+    tools: string[]
+    priority?: 'low' | 'medium' | 'high'
+    deadline?: Date
+  }
   workflow?: {
-    steps?: TaskStep[];
-    fallback?: TaskStep[];
-    validation?: ValidationRule[];
-  };
+    steps?: TaskStep[]
+    fallback?: TaskStep[]
+    validation?: ValidationRule[]
+  }
 }
 ```
 
 3. **Evaluation Framework**
+
 ```typescript
 interface EvaluationCriteria {
-  accuracy: number;
-  relevance: number;
+  accuracy: number
+  relevance: number
   businessValue: {
-    costEfficiency: number;
-    timeEfficiency: number;
-    qualityScore: number;
-  };
+    costEfficiency: number
+    timeEfficiency: number
+    qualityScore: number
+  }
   domainAccuracy: {
-    technicalPrecision: number;
-    industryCompliance: number;
-  };
+    technicalPrecision: number
+    industryCompliance: number
+  }
 }
 ```
+
+### Testing Framework
+
+The platform includes a robust testing framework for agents:
+
+1. **Test Runner**
+
+```bash
+# Test an agent (auto-discovers location)
+pnpm test:agent sales-prospecting
+
+# Test with explicit domain
+pnpm test:agent sales-agents/sales-prospecting
+
+# Test an orchestrator
+pnpm test:orchestrator task-manager
+```
+
+2. **Test Structure**
+
+```typescript
+// In {{agent-dir}}/__tests__/local.ts
+import { YourAgent } from '..'
+
+// Define test data
+const TEST_DATA = `Your test content`
+
+// Export test function
+export default async function runLocalTest() {
+  // Initialize agent
+  const agent = new YourAgent(config)
+
+  // Run test cases with different configurations
+  const result1 = await agent.process({
+    input: testInput1,
+    options: { mode: 'brief' },
+  })
+
+  const result2 = await agent.process({
+    input: testInput2,
+    options: { mode: 'detailed' },
+  })
+}
+```
+
+3. **Test Runner Features**
+
+- Progress tracking with elapsed time
+- Automatic agent discovery in domain directories
+- Structured error handling and reporting
+- Support for different agent types (domain, orchestrator)
+
+4. **Best Practices**
+
+- Place tests in `__tests__/local.ts` within agent directory
+- Test multiple configurations per agent
+- Use realistic test data
+- Validate both success and error cases
+- Keep test output clear and structured
 
 ## Database Schema
 
@@ -306,6 +371,7 @@ CREATE TABLE tasks (
 ### Prerequisites
 
 Before you begin, ensure you have the following installed:
+
 - [Node.js](https://nodejs.org/) >= 18
 - [pnpm](https://pnpm.io/installation) (recommended) or npm
 - [Supabase CLI](https://supabase.com/docs/guides/cli)
@@ -314,17 +380,20 @@ Before you begin, ensure you have the following installed:
 ### Environment Setup
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/yourusername/squad.git
    cd squad
    ```
 
 2. **Install dependencies:**
+
    ```bash
    pnpm install
    ```
 
 3. **Set up Supabase:**
+
    ```bash
    # Initialize Supabase
    supabase init
@@ -340,6 +409,7 @@ Before you begin, ensure you have the following installed:
    ```
 
 4. **Configure environment variables:**
+
    ```bash
    # Copy the example env file
    cp .env.example .env
@@ -351,6 +421,7 @@ Before you begin, ensure you have the following installed:
    ```
 
 5. **Start the development servers:**
+
    ```bash
    # Start all services
    pnpm dev
@@ -363,6 +434,7 @@ Before you begin, ensure you have the following installed:
 ### Development Workflow
 
 #### Running Tests
+
 ```bash
 # Run all tests
 pnpm test
@@ -376,6 +448,7 @@ pnpm test:watch
 ```
 
 #### Building Packages
+
 ```bash
 # Build all packages
 pnpm build
@@ -385,6 +458,7 @@ pnpm --filter @squad/core build
 ```
 
 #### Code Quality
+
 ```bash
 # Run linting
 pnpm lint
@@ -401,6 +475,7 @@ pnpm type-check
 Each package in the monorepo has its own development workflow:
 
 #### Core Package
+
 ```bash
 cd packages/core
 pnpm dev        # Watch mode for development
@@ -409,6 +484,7 @@ pnpm test       # Run tests
 ```
 
 #### Agents Package
+
 ```bash
 cd packages/agents
 pnpm dev        # Watch mode for development
@@ -417,6 +493,7 @@ pnpm test       # Run tests
 ```
 
 #### Web Application
+
 ```bash
 cd apps/web
 pnpm dev        # Start development server
@@ -427,6 +504,7 @@ pnpm preview    # Preview production build
 ### Supabase Development
 
 #### Database Management
+
 ```bash
 # Reset database to a clean state
 supabase db reset
@@ -442,6 +520,7 @@ supabase studio
 ```
 
 #### Edge Functions
+
 ```bash
 # Create a new edge function
 supabase functions new my-function
@@ -456,11 +535,13 @@ supabase functions serve
 ### Common Issues & Troubleshooting
 
 1. **Port Conflicts**
+
    - The web application runs on port 51926 by default
    - Supabase services use ports 54321-54326
    - Ensure these ports are available or update the configuration
 
 2. **Database Connection Issues**
+
    ```bash
    # Verify Supabase is running
    supabase status
@@ -479,13 +560,17 @@ supabase functions serve
 ### IDE Setup
 
 #### VS Code
+
 We provide recommended VS Code settings and extensions:
+
 1. Install the recommended extensions when prompted
 2. Use the workspace TypeScript version
 3. Enable ESLint and Prettier integrations
 
 #### Other IDEs
+
 Ensure your IDE supports:
+
 - TypeScript
 - ESLint
 - Prettier
@@ -497,12 +582,14 @@ Ensure your IDE supports:
 The following documentation is available:
 
 ### Core Documentation
+
 - [System Architecture](docs/ARCHITECTURE.md) - Detailed system design and components
 - [Installation Guide](docs/INSTALLATION.md) - Setup and configuration instructions
 - [Troubleshooting Guide](docs/TROUBLESHOOTING.md) - Common issues and solutions
 - [Contributing Guidelines](docs/CONTRIBUTING.md) - How to contribute to the project
 
 ### AI Development
+
 - [AI Development Codex](.ai/CODEX.md) - AI development guidelines and code generation process
 - [Agent Development](.ai/context/agent-patterns.md) - Agent patterns and best practices
 - [Memory Systems](.ai/context/memory-systems.md) - Memory management and storage patterns
@@ -510,6 +597,7 @@ The following documentation is available:
 - [Testing Strategies](.ai/context/testing-patterns.md) - Testing patterns and quality assurance
 
 ### Development Workflow
+
 ```mermaid
 graph TD
     A[New Feature/Task] --> B[Create Session]
@@ -527,16 +615,19 @@ graph TD
 ## Key Features
 
 1. **Agent Management**
+
    - Create and configure AI agents
    - Monitor agent status and performance
    - Scale agent instances dynamically
 
 2. **Task Orchestration**
+
    - Define complex workflows
    - Automatic task routing
    - Priority-based scheduling
 
 3. **Evaluation Framework**
+
    - LangChain integration for evaluation
    - Business metrics tracking
    - Quality assurance
