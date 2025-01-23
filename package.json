@@ -1,6 +1,7 @@
 {
   "name": "squad",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "turbo run build",
     "build:agent": "node scripts/build-agent.js",
@@ -21,7 +22,8 @@
     "test:ui": "vitest --ui",
     "clean": "turbo run clean",
     "clean:edge": "rm -rf supabase/functions/*/dist",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "create:session": "chmod +x scripts/create-session.sh && ./scripts/create-session.sh"
   },
   "workspaces": [
     "apps/*",
@@ -39,6 +41,7 @@
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.18",
+    "globals": "^15.12.0",
     "husky": "^8.0.0",
     "lint-staged": "^15.4.2",
     "node-fetch": "^3.3.2",
