@@ -6,6 +6,14 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
+    "build:agent": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "../../supabase/functions/*/dist/**"]
+    },
+    "deploy:agent": {
+      "dependsOn": ["build:agent"],
+      "cache": false
+    },
     "lint": {
       "outputs": []
     },
@@ -14,6 +22,9 @@
       "persistent": true
     },
     "clean": {
+      "cache": false
+    },
+    "clean:edge": {
       "cache": false
     }
   }

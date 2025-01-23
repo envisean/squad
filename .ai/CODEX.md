@@ -413,29 +413,31 @@ monitor.log({
 
 ## Future Considerations
 
-1. **Scalability**
-   - Agent pool management
-   - Distributed task processing
-   - Vector store sharding
-   - Memory federation
+### Edge Function Build Strategies
 
-2. **Integration**
-   - Additional LLM providers
-   - More tool integrations
-   - External system connections
-   - API extensions
+As the project grows, we might want to consider these approaches for edge function builds:
 
-3. **Features**
-   - Agent collaboration
-   - Learning from feedback
-   - Advanced memory models
-   - Custom tool development
+1. **Current Approach (v1)**
+   - Agent-specific builds using dedicated entry points
+   - Manual dependency management
+   - Direct Supabase function deployment
 
-4. **Optimization**
-   - Response time improvement
-   - Resource usage optimization
-   - Cost management
-   - Performance tuning
+2. **Future Approach (v2)**
+   - Dynamic entry point generation
+   - Automated dependency analysis
+   - Build config generator that:
+     - Analyzes agent dependencies
+     - Creates optimized bundles
+     - Manages shared code
+     - Handles tree-shaking
+     - Supports multiple deployment targets
+
+3. **Advanced Features to Consider**
+   - Build-time code splitting
+   - Shared module federation
+   - Cross-agent optimizations
+   - Platform-specific builds (Supabase/Vercel/etc)
+   - Automated dependency auditing
 
 # Squad AI Development Guidelines
 
@@ -487,3 +489,106 @@ monitor.log({
 ## Project Structure
 
 ...
+
+## Building and Deploying Edge Functions
+
+### Agent-Specific Edge Functions
+
+Each agent that needs to run in an edge function requires two steps:
+
+1. **Building**
+```bash
+pnpm build:agent sales-prospecting
+```
+
+This will:
+- Create an optimized build for just the sales-prospecting agent
+- Bundle only required dependencies
+- Copy the bundle to supabase/functions/sales-prospecting/dist/
+
+2. **Deploying**
+```bash
+pnpm deploy:agent sales-prospecting
+```
+
+This will:
+- Deploy the edge function to Supabase
+- Use the agent-specific configuration in deno.jsonc
+- Handle environment variables and secrets
+
+### Development Workflow
+
+1. Make changes to agent code in `packages/agents/src/agents/[agent-name]`
+2. Test locally using `supabase functions serve [agent-name]`
+3. Build the agent using `pnpm build:agent [agent-name]`
+4. Deploy using `pnpm deploy:agent [agent-name]`
+
+### Troubleshooting Deployments
+
+Common issues and solutions:
+
+1. **Build Failures**
+   - Check the agent's dependencies
+   - Verify external/noExternal settings in tsup config
+   - Use `--verbose` flag: `pnpm build:agent [agent-name] --verbose`
+
+2. **Deploy Failures**
+   - Ensure Supabase CLI is logged in
+   - Check function size limits
+   - Verify environment variables are set
+   - Look for version conflicts in deno.jsonc
+
+3. **Runtime Errors**
+   - Check Supabase function logs
+   - Verify all imports are Deno-compatible
+   - Test locally before deployment
+
+## Scripts
+
+### Agent Build and Deploy Scripts
+
+The project includes several scripts for managing agent builds and deployments:
+
+1. **Build Scripts**
+```bash
+# Build a specific agent
+pnpm build:agent sales-prospecting
+
+# Clean edge function builds
+pnpm clean:edge
+```
+
+2. **Deploy Scripts**
+```bash
+# Deploy a specific agent
+pnpm deploy:agent sales-prospecting
+```
+
+### How the Build Process Works
+
+1. `build:agent [name]`:
+   - Creates an agent-specific tsup config
+   - Bundles only the required agent code and dependencies
+   - Optimizes the bundle for edge deployment
+   - Copies the bundle to the appropriate Supabase function directory
+
+2. `deploy:agent [name]`:
+   - Validates the agent exists
+   - Uses Supabase CLI to deploy the function
+   - Handles environment variables and configuration
+
+3. `clean:edge`:
+   - Removes all edge function builds
+   - Useful when you need a fresh start
+
+### Best Practices
+
+1. **Build Process**
+   - Always build before deploying
+   - Test locally using `supabase functions serve`
+   - Check bundle sizes with `--verbose` flag
+
+2. **Deployment**
+   - Verify environment variables are set
+   - Test the function locally first
+   - Monitor deployment logs

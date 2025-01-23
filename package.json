@@ -3,8 +3,8 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "build:edge": "turbo run build --filter=@squad/agents... && mkdir -p supabase/functions/sales-prospecting/dist && cp -r packages/agents/dist/* supabase/functions/sales-prospecting/dist/",
-    "deploy:edge": "pnpm build:edge && supabase functions deploy sales-prospecting",
+    "build:agent": "node scripts/build-agent.js",
+    "deploy:agent": "node scripts/deploy-agent.js",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
@@ -14,7 +14,8 @@
     "test": "turbo test",
     "test:connection": "tsx scripts/test-connection.ts",
     "test:ui": "vitest --ui",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "clean:edge": "rm -rf supabase/functions/*/dist"
   },
   "workspaces": [
     "apps/*",
