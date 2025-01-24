@@ -37,7 +37,6 @@ yarn-error.log*
 .DS_Store
 *.pem
 
-supbase/.temp/*
-
 # Environment variables
 .env.*.local
+supabase/.temp/*

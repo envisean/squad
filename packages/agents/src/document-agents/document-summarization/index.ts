@@ -2,7 +2,7 @@ import { ChatOpenAI } from '@langchain/openai'
 import { PromptTemplate } from '@langchain/core/prompts'
 import { RunnableSequence } from '@langchain/core/runnables'
 import { StringOutputParser } from '@langchain/core/output_parsers'
-import { StructuredOutputParser } from 'langchain/output_parsers'
+import { StructuredOutputParser } from '@langchain/core/output_parsers'
 import { z } from 'zod'
 
 import {
