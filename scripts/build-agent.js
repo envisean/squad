@@ -93,8 +93,17 @@ function buildAgent(agentPath, isOrchestrator = false) {
         moduleResolution: 'node',
         composite: false,
         incremental: false,
-        include: [`src/${relativePath}/**/*`, 'src/types/**/*'],
-      },
+        rootDir: '../../',  // Set rootDir to workspace root
+        baseUrl: '../../',  // Set baseUrl to workspace root
+        paths: {
+          "@squad/*": ["packages/*/src"]
+        },
+        include: [
+          `src/${relativePath}/**/*`,
+          'src/types/**/*',
+          '../../core/src/**/*'
+        ]
+      }
     },
     splitting: false,
     sourcemap: true,
@@ -113,7 +122,10 @@ function buildAgent(agentPath, isOrchestrator = false) {
     esbuildOptions(options) {
       options.treeShaking = true
       options.ignoreAnnotations = false
-    },
+      options.resolveExtensions = ['.ts', '.tsx', '.js']
+      options.mainFields = ['module', 'main']
+      options.tsconfig = path.join(__dirname, '../packages/agents/tsconfig.json')
+    }
   }
 
   // Write temporary config

@@ -1,58 +1,11 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { z } from 'zod';
-
-export const QueueStatusSchema = z.enum([
-  'pending',
-  'processing',
-  'completed',
-  'failed',
-  'retrying'
-]);
-
-export const TaskPrioritySchema = z.enum([
-  'low',
-  'medium',
-  'high',
-  'critical'
-]);
-
-export const TaskQueueEntrySchema = z.object({
-  id: z.string().uuid().optional(),
-  agentId: z.string().uuid(),
-  taskType: z.string(),
-  priority: TaskPrioritySchema.default('medium'),
-  payload: z.record(z.unknown()),
-  metadata: z.record(z.unknown()).optional(),
-  maxRetries: z.number().default(3),
-  scheduledFor: z.date().optional()
-});
-
-export const OrchestratorQueueEntrySchema = z.object({
-  id: z.string().uuid().optional(),
-  orchestratorId: z.string().uuid(),
-  workflowType: z.string(),
-  priority: TaskPrioritySchema.default('medium'),
-  workflow: z.record(z.unknown()),
-  metadata: z.record(z.unknown()).optional(),
-  subTasks: z.array(z.record(z.unknown())).optional(),
-  scheduledFor: z.date().optional()
-});
-
-export type QueueStatus = z.infer<typeof QueueStatusSchema>;
-export type TaskPriority = z.infer<typeof TaskPrioritySchema>;
-export type TaskQueueEntry = z.infer<typeof TaskQueueEntrySchema>;
-export type OrchestratorQueueEntry = z.infer<typeof OrchestratorQueueEntrySchema>;
-
-export interface QueueMetrics {
-  pendingTasks: number;
-  processingTasks: number;
-  failedTasks: number;
-  completedTasks: number;
-  retryingTasks: number;
-  avgProcessingTime: number;
-  criticalTasks: number;
-  highPriorityTasks: number;
-}
+import {
+  TaskQueueEntry,
+  OrchestratorQueueEntry,
+  QueueMetrics,
+  TaskQueueEntrySchema,
+  OrchestratorQueueEntrySchema
+} from './types';
 
 export class QueueManager {
   private supabase: SupabaseClient;
@@ -98,7 +51,9 @@ export class QueueManager {
       id: data[0].id,
       agentId,
       taskType: data[0].task_type,
+      priority: data[0].priority || 'medium',
       payload: data[0].payload,
+      maxRetries: data[0].max_retries || 3,
       metadata: data[0].metadata
     };
   }
@@ -181,6 +136,7 @@ export class QueueManager {
       id: data[0].id,
       orchestratorId,
       workflowType: data[0].workflow_type,
+      priority: data[0].priority || 'medium',
       workflow: data[0].workflow,
       metadata: data[0].metadata
     };

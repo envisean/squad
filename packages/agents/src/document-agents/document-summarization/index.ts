@@ -5,6 +5,7 @@ import { StringOutputParser } from '@langchain/core/output_parsers'
 import { StructuredOutputParser } from '@langchain/core/output_parsers'
 import { z } from 'zod'
 import { BaseAgent } from '../../../../core/src/base-agent'
+import { AgentTask, TaskResult, AgentConfig, AgentStatus, AgentState } from '../../../../core/src/types'
 
 import {
   DocumentSummarizationInput,
@@ -65,34 +66,46 @@ export class DocumentSummarizationAgent extends BaseAgent {
   description = 'Generates summaries of documents with various levels of detail'
 
   constructor(config: { openAIApiKey: string }) {
-    super(config)
-
+    const agentConfig: AgentConfig = {
+      type: 'job',
+      name: 'document-summarization',
+      version: '1.0.0'
+    };
+    const initialState: AgentState = {
+      status: AgentStatus.IDLE
+    };
+    super(agentConfig, initialState);
+    
     this.model = new ChatOpenAI({
       openAIApiKey: config.openAIApiKey,
       modelName: 'gpt-4-turbo-preview',
-      temperature: 0,
-    })
+      temperature: 0.2
+    });
 
     this.briefTemplate = PromptTemplate.fromTemplate(BRIEF_SUMMARY_TEMPLATE)
     this.detailedTemplate = PromptTemplate.fromTemplate(DETAILED_SUMMARY_TEMPLATE)
     this.comprehensiveTemplate = PromptTemplate.fromTemplate(COMPREHENSIVE_SUMMARY_TEMPLATE)
   }
 
-  async validateInput(input: unknown): Promise<DocumentSummarizationInput> {
-    return DocumentSummarizationInputSchema.parse(input)
+  async validateInput(input: unknown): Promise<boolean> {
+    try {
+      DocumentSummarizationInputSchema.parse(input)
+      return true
+    } catch (error) {
+      return false
+    }
   }
 
-  async processTask(input: DocumentSummarizationInput): Promise<DocumentSummarizationOutput> {
+  async processTask(task: AgentTask): Promise<TaskResult> {
     const startTime = Date.now()
 
     try {
-      // Update agent state
-      await this.updateState({ status: 'processing', currentTask: 'summarizing document' })
-
-      // Select template based on summary type
-      const template = this.getTemplateForType(input.options.summaryType)
+      this.updateState({ status: AgentStatus.RUNNING })
+      // Validate and parse input
+      const input = DocumentSummarizationInputSchema.parse(task.input)
 
       // Create chain for generating summary
+      const template = this.getTemplateForType(input.options.summaryType)
       const chain = RunnableSequence.from([template, this.model, new StringOutputParser()])
 
       // Generate summary
@@ -120,25 +133,42 @@ export class DocumentSummarizationAgent extends BaseAgent {
 
       // Track metrics
       await this.reportMetrics({
-        documentLength: originalLength,
-        summaryLength,
-        processingTime,
-        compressionRatio,
+        status: 'success',
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        duration: processingTime,
+        metadata: {
+          documentLength: originalLength,
+          summaryLength,
+          compressionRatio,
+        }
       })
 
-      // Update state to complete
-      await this.updateState({ status: 'completed', lastProcessedAt: new Date() })
-
-      // Validate and return output
-      return DocumentSummarizationOutputSchema.parse(output)
+      this.updateState({ status: AgentStatus.IDLE })
+      return {
+        taskId: task.id,
+        status: 'success',
+        output: DocumentSummarizationOutputSchema.parse(output),
+        metadata: {
+          processingTime,
+          compressionRatio,
+        }
+      }
     } catch (error) {
-      // Update state to error
-      await this.updateState({
-        status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error',
+      this.updateState({ status: AgentStatus.ERROR })
+      // Report error metrics
+      await this.reportMetrics({
+        status: 'failure',
+        startTime: new Date(startTime),
+        endTime: new Date(),
+        error: error instanceof Error ? error.message : String(error)
       })
-
-      throw error
+      return {
+        taskId: task.id,
+        status: 'failure',
+        output: null,
+        error: error instanceof Error ? error.message : String(error)
+      }
     }
   }
 

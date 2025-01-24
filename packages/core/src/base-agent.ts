@@ -23,12 +23,12 @@ export abstract class BaseAgent {
 
   // Control plane integration
   async initialize(): Promise<void> {
-    if (this.controlPlane) {
+    if (this.controlPlane && this.config.id) {
       await this.controlPlane.registerAgent({
-        type: 'job',
-        status: 'idle',
+        type: this.config.type,
+        status: this.state.status,
         edge_function: this.name,
-        config: this.config,
+        config: { ...this.config } as Record<string, unknown>,
         metadata: {
           version: this.version,
           resources: { cpu: 1, memory: 512 },
@@ -47,7 +47,7 @@ export abstract class BaseAgent {
   }
 
   async cleanup(): Promise<void> {
-    if (this.controlPlane) {
+    if (this.controlPlane && this.config.id) {
       this.controlPlane.stopHeartbeat()
       await this.controlPlane.unregisterAgent(this.config.id)
     }
@@ -56,20 +56,20 @@ export abstract class BaseAgent {
   // State management
   protected async updateState(newState: Partial<AgentState>): Promise<void> {
     this.state = { ...this.state, ...newState }
-    if (this.controlPlane) {
-      await this.controlPlane.updateStatus(this.config.id, newState.status || this.state.status)
+    if (this.controlPlane && this.config.id && newState.status) {
+      await this.controlPlane.updateStatus(this.config.id, newState.status)
     }
   }
 
   // Monitoring
   protected async reportMetrics(metrics: AgentMetrics): Promise<void> {
     if (this.monitor) {
-      await this.monitor.recordMetric({
-        agentId: this.config.id,
-        name: 'agent_metrics',
-        value: 1,
-        labels: metrics,
-      })
+      await this.monitor.startTask()
+      this.monitor.completeTask(
+        metrics.status === 'success',
+        metrics.error,
+        metrics.metadata
+      )
     }
   }
 

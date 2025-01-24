@@ -6,7 +6,10 @@ import type {
   AgentHeartbeat,
   AgentControlCommand,
   AgentCommand,
-  AgentStatus
+  AgentStatus,
+  TaskQueueEntry,
+  OrchestratorQueueEntry,
+  QueueMetrics
 } from './types';
 
 interface ControlPlaneConfig {
@@ -159,13 +162,13 @@ export class ControlPlane {
         async (payload) => {
           try {
             await onCommand(payload.new as AgentControlCommand);
-          } catch (error) {
+          } catch (error: unknown) {
             console.error('Error processing command:', error);
             // Update command status as failed
             await this.updateCommandStatus(
               payload.new.id,
               'failed',
-              error.message
+              error instanceof Error ? error.message : String(error)
             );
           }
         }
@@ -176,7 +179,7 @@ export class ControlPlane {
   // Heartbeat Management
   startHeartbeat(agentId: string, metrics: () => Promise<AgentHeartbeat['metrics']>): void {
     if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
+      clearInterval(this.heartbeatInterval as NodeJS.Timeout);
     }
 
     this.heartbeatInterval = setInterval(async () => {
@@ -186,15 +189,15 @@ export class ControlPlane {
           agentId,
           metrics: currentMetrics
         });
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Failed to send heartbeat:', error);
       }
-    }, this.config.heartbeatInterval);
+    }, this.config.heartbeatInterval) as NodeJS.Timer;
   }
 
   stopHeartbeat(): void {
     if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
+      clearInterval(this.heartbeatInterval as NodeJS.Timeout);
       this.heartbeatInterval = undefined;
     }
   }
