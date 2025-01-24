@@ -17,6 +17,7 @@ export default [
       'vite.config.js',
       'vitest.config.js',
       'jest.config.js',
+      'supabase/functions/**', // Supabase functions are special since there might be serverless functions in there or assumed environment capabilities
     ],
   },
   eslint.configs.recommended,
