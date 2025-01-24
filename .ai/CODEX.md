@@ -826,3 +826,109 @@ echo "Created session file: $SESSION_FILE"
 - Prefer fixing script-specific issues over changing shared configs
 - Maintain separation between test utilities and production code
 - Document any special handling needed for test scenarios
+
+## Agent Implementation Requirements
+
+### 1. Control Plane Integration
+
+All agents MUST implement:
+
+```typescript
+interface AgentControlPlaneIntegration {
+  // Lifecycle Management
+  initialize(): Promise<void>
+  cleanup(): Promise<void>
+
+  // State Management
+  updateState(state: Partial<AgentState>): Promise<void>
+  reportMetrics(metrics: AgentMetrics): Promise<void>
+
+  // Task Execution
+  executeTask<TInput, TOutput>(task: AgentTask<TInput>): Promise<TaskResult<TOutput>>
+}
+```
+
+### 2. Memory Management
+
+All agents SHOULD implement appropriate memory patterns:
+
+```typescript
+interface AgentMemoryManagement {
+  // Short-term memory (30 minutes)
+  cacheResult(key: string, value: unknown): Promise<void>
+  getCachedResult(key: string): Promise<unknown>
+
+  // Working memory (24 hours)
+  storeWorkingMemory(data: unknown): Promise<void>
+  getWorkingMemory(): Promise<unknown>
+
+  // Long-term memory (permanent)
+  storeInVectorStore(data: unknown, metadata: unknown): Promise<void>
+  searchVectorStore(query: string): Promise<unknown[]>
+}
+```
+
+### 3. Monitoring Integration
+
+All agents MUST implement monitoring:
+
+```typescript
+interface AgentMonitoring {
+  // Metrics
+  reportMetric(name: string, value: number): Promise<void>
+  reportLatency(operation: string, duration: number): Promise<void>
+
+  // Logging
+  logDebug(message: string, context: Record<string, unknown>): void
+  logInfo(message: string, context: Record<string, unknown>): void
+  logWarning(message: string, context: Record<string, unknown>): void
+  logError(error: Error, context: Record<string, unknown>): void
+}
+```
+
+## Migration Guidelines
+
+1. **For Existing Agents**
+
+   - Implement control plane integration first
+   - Add monitoring capabilities
+   - Gradually introduce memory management
+   - Maintain backward compatibility
+
+2. **For New Agents**
+
+   - Start with proper base class (Domain/Orchestrator/Task)
+   - Implement all required interfaces
+   - Follow established patterns from the start
+
+3. **Testing Requirements**
+   - Unit tests for core functionality
+   - Integration tests with control plane
+   - Memory management tests
+   - Performance benchmarks
+
+## Deployment Patterns
+
+1. **Edge Function Deployment**
+
+   ```bash
+   # Standard deployment flow
+   pnpm deploy:agent <domain>/<agent-name>
+
+   # Required environment setup
+   - OPENAI_API_KEY
+   - SUPABASE_URL
+   - SUPABASE_KEY
+   ```
+
+2. **Monitoring Setup**
+   ```sql
+   -- Required monitoring tables
+   CREATE TABLE agent_metrics (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     agent_id UUID REFERENCES agents(id),
+     metric_name TEXT NOT NULL,
+     metric_value DOUBLE PRECISION NOT NULL,
+     timestamp TIMESTAMPTZ DEFAULT now()
+   );
+   ```
