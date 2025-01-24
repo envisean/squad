@@ -932,3 +932,137 @@ interface AgentMonitoring {
      timestamp TIMESTAMPTZ DEFAULT now()
    );
    ```
+
+## Document Agents
+
+Document agents are specialized agents that process and transform documents. They follow a consistent pattern:
+
+1. **Input Validation**: Document agents validate both the document content and metadata
+2. **Processing Pipeline**: Each agent implements a clear processing pipeline
+3. **Output Formatting**: Results are formatted according to user preferences
+4. **Error Handling**: Robust error handling for document parsing and processing
+5. **Metrics Tracking**: Performance and usage metrics are tracked
+
+### Example: Document Summarization Agent
+
+The document summarization agent demonstrates these patterns:
+
+```typescript
+import { BaseAgent } from '@squad/core/base-agent'
+import { z } from 'zod'
+
+// Input validation using zod schema
+const DocumentSchema = z.object({
+  content: z.string(),
+  metadata: z.object({
+    type: z.enum(['markdown', 'text', 'html']),
+    title: z.string().optional(),
+    author: z.string().optional(),
+    date: z.string().optional(),
+  }),
+})
+
+class DocumentSummarizationAgent extends BaseAgent {
+  name = 'document-summarization'
+  version = '1.0.0'
+  description = 'Generates summaries of documents with various levels of detail'
+
+  // Clear processing pipeline
+  async processTask(input: z.infer<typeof DocumentSchema>) {
+    // 1. Parse and validate document
+    const document = await this.parseDocument(input)
+
+    // 2. Generate summaries
+    const brief = await this.generateBriefSummary(document)
+    const detailed = await this.generateDetailedSummary(document)
+
+    // 3. Format output
+    return this.formatResponse(brief, detailed)
+  }
+
+  // Error handling example
+  private async parseDocument(input: any) {
+    try {
+      const validated = DocumentSchema.parse(input)
+      return validated
+    } catch (error) {
+      throw new Error(`Invalid document format: ${error.message}`)
+    }
+  }
+
+  // Metrics tracking example
+  private trackMetrics(document: any, result: any) {
+    this.monitor.trackMetric('document_length', document.content.length)
+    this.monitor.trackMetric('processing_time', result.metadata.processingTime)
+    this.monitor.trackMetric('compression_ratio', result.metadata.compressionRatio)
+  }
+}
+```
+
+### Integration Patterns
+
+Document agents can be integrated with other agents in various ways:
+
+1. **Sequential Processing**:
+
+```typescript
+// Example: Research agent using document summarization
+const docs = await searchAgent.findRelevantDocuments(query)
+const summaries = await Promise.all(docs.map(doc => summarizationAgent.processDocument(doc)))
+const analysis = await analysisAgent.analyzeFindings(summaries)
+```
+
+2. **Parallel Processing**:
+
+```typescript
+// Example: Batch document processing
+const results = await Promise.all([
+  summarizationAgent.processDocument(doc1),
+  translationAgent.translateDocument(doc2),
+  extractionAgent.extractEntities(doc3),
+])
+```
+
+3. **Workflow Integration**:
+
+```typescript
+// Example: Document review workflow
+const workflow = new AgentWorkflow()
+  .addStep('summarize', summarizationAgent)
+  .addStep('extract', extractionAgent)
+  .addStep('analyze', analysisAgent)
+  .addStep('review', reviewAgent)
+
+const result = await workflow.execute(document)
+```
+
+### Best Practices
+
+1. **Document Validation**
+
+   - Always validate document format and content
+   - Support multiple input formats (markdown, text, html)
+   - Validate metadata separately from content
+
+2. **Processing Pipeline**
+
+   - Break processing into clear stages
+   - Each stage should have a single responsibility
+   - Allow configuration of pipeline stages
+
+3. **Error Handling**
+
+   - Provide clear error messages for invalid input
+   - Handle timeouts and processing errors gracefully
+   - Include context in error messages
+
+4. **Performance**
+
+   - Track processing time and resource usage
+   - Implement caching for identical documents
+   - Support batch processing for multiple documents
+
+5. **Integration**
+   - Provide clear integration examples
+   - Document common integration patterns
+   - Support both synchronous and asynchronous processing

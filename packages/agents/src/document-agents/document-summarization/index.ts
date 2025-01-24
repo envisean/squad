@@ -4,6 +4,7 @@ import { RunnableSequence } from '@langchain/core/runnables'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { StructuredOutputParser } from '@langchain/core/output_parsers'
 import { z } from 'zod'
+import { BaseAgent } from '../../../../core/src/base-agent'
 
 import {
   DocumentSummarizationInput,
@@ -53,15 +54,21 @@ Format: {format}
 
 Summary:`
 
-export class DocumentSummarizationAgent {
+export class DocumentSummarizationAgent extends BaseAgent {
   private model: ChatOpenAI
   private briefTemplate: PromptTemplate
   private detailedTemplate: PromptTemplate
   private comprehensiveTemplate: PromptTemplate
 
-  constructor(apiKey: string) {
+  name = 'document-summarization'
+  version = '1.0.0'
+  description = 'Generates summaries of documents with various levels of detail'
+
+  constructor(config: { openAIApiKey: string }) {
+    super(config)
+
     this.model = new ChatOpenAI({
-      openAIApiKey: apiKey,
+      openAIApiKey: config.openAIApiKey,
       modelName: 'gpt-4-turbo-preview',
       temperature: 0,
     })
@@ -71,42 +78,68 @@ export class DocumentSummarizationAgent {
     this.comprehensiveTemplate = PromptTemplate.fromTemplate(COMPREHENSIVE_SUMMARY_TEMPLATE)
   }
 
-  async process(input: DocumentSummarizationInput): Promise<DocumentSummarizationOutput> {
-    // Validate input
-    const validatedInput = DocumentSummarizationInputSchema.parse(input)
+  async validateInput(input: unknown): Promise<DocumentSummarizationInput> {
+    return DocumentSummarizationInputSchema.parse(input)
+  }
+
+  async processTask(input: DocumentSummarizationInput): Promise<DocumentSummarizationOutput> {
     const startTime = Date.now()
 
-    // Select template based on summary type
-    const template = this.getTemplateForType(validatedInput.options.summaryType)
+    try {
+      // Update agent state
+      await this.updateState({ status: 'processing', currentTask: 'summarizing document' })
 
-    // Create chain for generating summary
-    const chain = RunnableSequence.from([template, this.model, new StringOutputParser()])
+      // Select template based on summary type
+      const template = this.getTemplateForType(input.options.summaryType)
 
-    // Generate summary
-    const summary = await chain.invoke({
-      content: validatedInput.document.content,
-      maxLength: validatedInput.options.maxLength || 'not specified',
-      format: validatedInput.options.format || 'text',
-      preserveStructure: validatedInput.options.preserveStructure ? 'to be' : 'not to be',
-    })
+      // Create chain for generating summary
+      const chain = RunnableSequence.from([template, this.model, new StringOutputParser()])
 
-    // Calculate metadata
-    const endTime = Date.now()
-    const processingTime = endTime - startTime
-    const originalLength = validatedInput.document.content.length
-    const summaryLength = summary.length
-    const compressionRatio = originalLength / summaryLength
+      // Generate summary
+      const summary = await chain.invoke({
+        content: input.document.content,
+        maxLength: input.options.maxLength || 'not specified',
+        format: input.options.format || 'text',
+        preserveStructure: input.options.preserveStructure ? 'to be' : 'not to be',
+      })
 
-    // Format output based on summary type
-    const output = await this.formatOutput(summary, validatedInput.options.summaryType, {
-      originalLength,
-      summaryLength,
-      compressionRatio,
-      processingTime,
-    })
+      // Calculate metadata
+      const endTime = Date.now()
+      const processingTime = endTime - startTime
+      const originalLength = input.document.content.length
+      const summaryLength = summary.length
+      const compressionRatio = originalLength / summaryLength
 
-    // Validate output
-    return DocumentSummarizationOutputSchema.parse(output)
+      // Format output based on summary type
+      const output = await this.formatOutput(summary, input.options.summaryType, {
+        originalLength,
+        summaryLength,
+        compressionRatio,
+        processingTime,
+      })
+
+      // Track metrics
+      await this.reportMetrics({
+        documentLength: originalLength,
+        summaryLength,
+        processingTime,
+        compressionRatio,
+      })
+
+      // Update state to complete
+      await this.updateState({ status: 'completed', lastProcessedAt: new Date() })
+
+      // Validate and return output
+      return DocumentSummarizationOutputSchema.parse(output)
+    } catch (error) {
+      // Update state to error
+      await this.updateState({
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      })
+
+      throw error
+    }
   }
 
   private getTemplateForType(

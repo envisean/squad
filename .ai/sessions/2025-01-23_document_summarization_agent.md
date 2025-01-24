@@ -88,31 +88,42 @@ Would you like me to proceed with implementing any specific milestone?
 
 ### 7. Edge Function Deployment
 
-**Status: ✅ Deployed**
+**Status: ✅ Completed**
 
-The document summarization agent has been successfully deployed as an edge function. The deployment uses our standard deployment script `pnpm deploy:agent` which handles bundling and deploying the agent code.
+The document summarization agent has been successfully deployed as an edge function.
 
-**Completed Steps:**
+**API Documentation:**
 
-- [x] Create edge function with proper handler
-- [x] Set OpenAI API key in Supabase secrets
-- [x] Deploy function using `pnpm deploy:agent document-agents/document-summarization`
-- [ ] Test with sample documents
-- [ ] Document API usage
-- [ ] Set up basic error monitoring
+```typescript
+// Request Schema
+interface DocumentSummarizationRequest {
+  document: {
+    content: string;
+    metadata: {
+      type: 'markdown' | 'text' | 'html';
+      title?: string;
+      author?: string;
+      date?: string;
+    };
+  };
+  options: {
+    summaryType: 'brief' | 'detailed' | 'comprehensive';
+    preserveStructure: boolean;
+    maxLength?: number;
+    format?: 'markdown' | 'text' | 'json';
+  };
+}
 
-**Endpoint Usage:**
-
-```bash
+// Example Usage
 curl -X POST "https://etziwqjmkwuqntcmqadz.supabase.co/functions/v1/document-summarization" \
   -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
     "document": {
-      "content": "# Test Document\n\nThis is a test.",
+      "content": "# Your Document\n\nContent here...",
       "metadata": {
         "type": "markdown",
-        "title": "Test"
+        "title": "Example Document"
       }
     },
     "options": {
@@ -121,18 +132,140 @@ curl -X POST "https://etziwqjmkwuqntcmqadz.supabase.co/functions/v1/document-sum
       "format": "text"
     }
   }'
+
+// Response Schema
+interface DocumentSummarizationResponse {
+  summary: {
+    brief: string;
+    detailed?: {
+      overview: string;
+      sections: Array<{
+        title: string;
+        content: string;
+        subsections?: Array<{
+          title: string;
+          content: string;
+        }>;
+      }>;
+    };
+    keyPoints: string[];
+    metadata: {
+      originalLength: number;
+      summaryLength: number;
+      compressionRatio: number;
+      processingTime: number;
+    };
+  };
+}
+```
+
+**Monitoring Setup:**
+
+1. **Metrics Tracked:**
+
+   ```sql
+   -- Agent metrics table
+   CREATE TABLE IF NOT EXISTS agent_metrics (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     agent_id UUID REFERENCES agents(id),
+     metric_name TEXT NOT NULL,
+     metric_value DOUBLE PRECISION NOT NULL,
+     timestamp TIMESTAMPTZ DEFAULT now()
+   );
+
+   -- Document summarization specific metrics
+   INSERT INTO agent_metrics (agent_id, metric_name, metric_value) VALUES
+     (:agent_id, 'document_length', :length),
+     (:agent_id, 'processing_time_ms', :time),
+     (:agent_id, 'compression_ratio', :ratio),
+     (:agent_id, 'token_usage', :tokens);
+   ```
+
+2. **Logging:**
+
+   ```typescript
+   // Log levels
+   const LOG_LEVELS = {
+     DEBUG: 'debug',
+     INFO: 'info',
+     WARN: 'warn',
+     ERROR: 'error'
+   };
+
+   // Example log entries
+   {
+     level: 'info',
+     message: 'Document summarization started',
+     metadata: {
+       documentId: string,
+       documentType: string,
+       summaryType: string
+     }
+   }
+   ```
+
+3. **Alerts:**
+   - High latency (> 10s)
+   - Error rate > 5%
+   - Token usage spikes
+   - Invalid input patterns
+
+**Integration Examples:**
+
+1. **Node.js Client:**
+
+```typescript
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+async function summarizeDocument(content: string) {
+  const { data, error } = await supabase.functions.invoke('document-summarization', {
+    body: {
+      document: {
+        content,
+        metadata: { type: 'markdown' },
+      },
+      options: {
+        summaryType: 'brief',
+        preserveStructure: false,
+      },
+    },
+  })
+
+  if (error) throw error
+  return data
+}
+```
+
+2. **Python Client:**
+
+```python
+from supabase import create_client
+
+supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+def summarize_document(content: str):
+    response = supabase.functions.invoke(
+        'document-summarization',
+        invoke_options={
+            'document': {
+                'content': content,
+                'metadata': {'type': 'markdown'}
+            },
+            'options': {
+                'summaryType': 'brief',
+                'preserveStructure': False
+            }
+        }
+    )
+    return response.data
 ```
 
 **Next Steps:**
 
-1. Test the endpoint with various document types and sizes
-2. Add error monitoring and logging
-3. Document API usage patterns and best practices
-4. Consider implementing rate limiting and caching strategies
-
-**Open Questions:**
-
-- [ ] Should we add rate limiting to the endpoint?
-- [ ] Do we need to add request validation middleware?
-- [ ] Should we add response caching for identical documents?
-- [ ] What monitoring metrics should we track?
+1. [ ] Add rate limiting
+2. [ ] Implement caching for identical documents
+3. [ ] Add support for batch processing
+4. [ ] Create dashboard for monitoring
+5. [ ] Document integration patterns with other agents

@@ -49,6 +49,7 @@
     "husky": "^8.0.0",
     "lint-staged": "^15.4.2",
     "node-fetch": "^3.3.2",
+    "ora": "^8.0.1",
     "prettier": "^3.2.5",
     "tsconfig-paths": "^4.2.0",
     "tsup": "^8.0.1",

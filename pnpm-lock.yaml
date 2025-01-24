@@ -99,6 +99,9 @@ importers:
       node-fetch:
         specifier: ^3.3.2
         version: 3.3.2
+      ora:
+        specifier: ^8.0.1
+        version: 8.1.1
       prettier:
         specifier: ^3.2.5
         version: 3.3.3
