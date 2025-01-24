@@ -88,78 +88,51 @@ Would you like me to proceed with implementing any specific milestone?
 
 ### 7. Edge Function Deployment
 
-**Milestones:**
+**Status: ✅ Deployed**
 
-1. Create Edge Function
+The document summarization agent has been successfully deployed as an edge function. The deployment uses our standard deployment script `pnpm deploy:agent` which handles bundling and deploying the agent code.
 
-   ```bash
-   # Create new edge function
-   supabase functions new document-summarization
-   ```
+**Completed Steps:**
 
-2. Implement Handler
-
-   ```typescript
-   // Main handler function
-   Deno.serve(async req => {
-     try {
-       const { document, options } = await req.json()
-       const agent = new DocumentSummarizationAgent(Deno.env.get('OPENAI_API_KEY')!)
-       const result = await agent.process({ document, options })
-       return new Response(JSON.stringify(result), {
-         headers: { 'Content-Type': 'application/json' },
-       })
-     } catch (error) {
-       return new Response(JSON.stringify({ error: error.message }), {
-         status: 400,
-         headers: { 'Content-Type': 'application/json' },
-       })
-     }
-   })
-   ```
-
-3. Deploy Function
-
-   ```bash
-   # Set required secrets
-   supabase secrets set OPENAI_API_KEY=...
-
-   # Deploy the function
-   supabase functions deploy document-summarization
-   ```
-
-4. Test Endpoint
-   ```bash
-   curl -X POST "https://[PROJECT_REF].supabase.co/functions/v1/document-summarization" \
-     -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "document": {
-         "content": "# Test Document\n\nThis is a test.",
-         "metadata": {
-           "type": "markdown",
-           "title": "Test"
-         }
-       },
-       "options": {
-         "summaryType": "brief",
-         "preserveStructure": false,
-         "format": "text"
-       }
-     }'
-   ```
-
-**Deployment Checklist:**
-
-- [ ] Create edge function with proper handler
-- [ ] Set OpenAI API key in Supabase secrets
-- [ ] Deploy function
+- [x] Create edge function with proper handler
+- [x] Set OpenAI API key in Supabase secrets
+- [x] Deploy function using `pnpm deploy:agent document-agents/document-summarization`
 - [ ] Test with sample documents
 - [ ] Document API usage
 - [ ] Set up basic error monitoring
 
-**Questions:**
+**Endpoint Usage:**
+
+```bash
+curl -X POST "https://etziwqjmkwuqntcmqadz.supabase.co/functions/v1/document-summarization" \
+  -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "document": {
+      "content": "# Test Document\n\nThis is a test.",
+      "metadata": {
+        "type": "markdown",
+        "title": "Test"
+      }
+    },
+    "options": {
+      "summaryType": "brief",
+      "preserveStructure": false,
+      "format": "text"
+    }
+  }'
+```
+
+**Next Steps:**
+
+1. Test the endpoint with various document types and sizes
+2. Add error monitoring and logging
+3. Document API usage patterns and best practices
+4. Consider implementing rate limiting and caching strategies
+
+**Open Questions:**
 
 - [ ] Should we add rate limiting to the endpoint?
 - [ ] Do we need to add request validation middleware?
 - [ ] Should we add response caching for identical documents?
+- [ ] What monitoring metrics should we track?
